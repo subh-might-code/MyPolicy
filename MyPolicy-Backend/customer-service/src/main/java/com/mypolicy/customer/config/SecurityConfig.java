@@ -36,17 +36,11 @@ public class SecurityConfig {
     http
         .csrf(csrf -> csrf.disable())
         .authorizeHttpRequests(auth -> auth
-            // Public endpoints - no authentication required
-            .requestMatchers(
-                "/api/v1/customers/register",
-                "/api/v1/customers/login",
-                "/",
-                "/health",
-                "/api/health",
-                "/api/v1/health",
-                "/api/v1/ping",
-                "/api/v1/actuator/**")
-            .permitAll()
+            // Public endpoints - no authentication required (BFF internal calls + health)
+            .requestMatchers("/api/v1/customers/register", "/api/v1/customers/login").permitAll()
+            .requestMatchers("/api/v1/customers/details/**").permitAll()  // BFF portfolio fetch
+            .requestMatchers("/", "/health", "/api/health", "/api/v1/health", "/api/v1/ping").permitAll()
+            .requestMatchers("/actuator/**", "/api/v1/actuator/**").permitAll()
             // All other endpoints require authentication
             .anyRequest().authenticated())
         // Stateless session management (JWT-based)

@@ -1,5 +1,7 @@
 package com.mypolicy.bff.exception;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +36,38 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, Object>> handleFeignBadRequestException(FeignException.BadRequest ex) {
     Map<String, Object> error = new HashMap<>();
     error.put("timestamp", LocalDateTime.now());
-    error.put("message", "Invalid request to downstream service");
+    String friendlyMessage = "Bad request to downstream service";
+
+    try {
+      String body = ex.contentUTF8();
+      if (body != null && !body.isBlank()) {
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = mapper.readTree(body);
+        if (root.hasNonNull("message")) {
+          friendlyMessage = root.get("message").asText();
+        } else if (root.has("errors") && root.get("errors").isObject()) {
+          // For validation-style errors, surface a concise summary.
+          JsonNode errorsNode = root.get("errors");
+          StringBuilder sb = new StringBuilder("Validation error: ");
+          errorsNode.fieldNames().forEachRemaining(field -> {
+            JsonNode msgNode = errorsNode.get(field);
+            if (msgNode != null && !msgNode.isNull()) {
+              if (sb.charAt(sb.length() - 1) != ' ') {
+                sb.append("; ");
+              }
+              sb.append(field).append(" - ").append(msgNode.asText());
+            }
+          });
+          if (sb.length() > "Validation error: ".length()) {
+            friendlyMessage = sb.toString();
+          }
+        }
+      }
+    } catch (Exception ignored) {
+      // If parsing fails, fall back to default friendly message.
+    }
+
+    error.put("message", friendlyMessage);
     error.put("status", HttpStatus.BAD_REQUEST.value());
     error.put("details", ex.contentUTF8());
 
@@ -55,11 +88,24 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, Object>> handleFeignException(FeignException ex) {
     Map<String, Object> error = new HashMap<>();
     error.put("timestamp", LocalDateTime.now());
+    String detail = ex.contentUTF8();
+    if (detail == null || detail.isBlank()) {
+      detail = ex.getMessage(); // e.g. "Connection refused" or "Load balancer does not have available server"
+    }
     error.put("message", "Error communicating with downstream service");
     error.put("status", ex.status());
-    error.put("details", ex.contentUTF8());
+    error.put("details", detail);
 
-    return new ResponseEntity<>(error, HttpStatus.valueOf(ex.status()));
+    return new ResponseEntity<>(error, HttpStatus.valueOf(ex.status() > 0 ? ex.status() : 503));
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+    Map<String, Object> error = new HashMap<>();
+    error.put("timestamp", LocalDateTime.now());
+    error.put("message", ex.getMessage());
+    error.put("status", HttpStatus.BAD_REQUEST.value());
+    return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)

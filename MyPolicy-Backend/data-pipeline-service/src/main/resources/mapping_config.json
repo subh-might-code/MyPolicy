@@ -1,0 +1,45 @@
+{
+  "auto_insurance": {
+    "policy_id": "PolicyNumber",
+    "premium": "AnnualPremium",
+    "start_date": "PolicyStartDate",
+    "policy_end": "PolicyEndDate",
+    "sum_assured": "IDV",
+    "pan": "PAN",
+    "mobile": "Mobile",
+    "email": "Email",
+    "dob": "DOB",
+    "insurer": "Insurer"
+  },
+  "health_insurance": {
+    "policy_id": "Policy Number",
+    "premium": "Annual Premium",
+    "start_date": "Policy Start Date",
+    "policy_end": "Policy End Date",
+    "sum_assured": "Coverage Amount",
+    "pan": "PAN",
+    "mobile": "Mobile",
+    "email": "Email",
+    "dob": "DOB",
+    "insurer": "Insurer"
+  },
+  "life_insurance": {
+    "policy_id": "PolicyNum",
+    "premium": "AnnualPrem",
+    "start_date": "PolicyStart",
+    "policy_end": "PolicyEnd",
+    "sum_assured": "SumAssured",
+    "pan": "PAN",
+    "mobile": "Mobile",
+    "email": "Email",
+    "dob": "DOB",
+    "insurer": "Insurer"
+  },
+  "customer_details": {
+    "cust_id": "customerId",
+    "pan": "refCustItNum",
+    "mobile": "refPhoneMobile",
+    "email": "custEmailID",
+    "dob": "datBirthCust"
+  }
+}

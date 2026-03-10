@@ -86,14 +86,14 @@ if (-not $mavenInstalled) {
     }
 }
 
-# Check PostgreSQL
-Write-Host "Checking PostgreSQL..." -ForegroundColor Cyan
-$pgRunning = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue | Where-Object {$_.Status -eq "Running"}
-if ($pgRunning) {
-    Write-Host "✓ PostgreSQL is running" -ForegroundColor Green
+# Check MongoDB
+Write-Host "Checking MongoDB..." -ForegroundColor Cyan
+$mongoRunning = Get-Service -Name "MongoDB" -ErrorAction SilentlyContinue | Where-Object {$_.Status -eq "Running"}
+if ($mongoRunning) {
+    Write-Host "✓ MongoDB is running" -ForegroundColor Green
 } else {
-    Write-Host "⚠️  PostgreSQL not running - Please start it first" -ForegroundColor Yellow
-    Write-Host "   Required: localhost:5432 with database 'mypolicy_db'" -ForegroundColor Gray
+    Write-Host "⚠️  MongoDB not running - Please start it first" -ForegroundColor Yellow
+    Write-Host "   Required: localhost:27017" -ForegroundColor Gray
 }
 
 Write-Host ""

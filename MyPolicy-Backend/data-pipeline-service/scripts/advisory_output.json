@@ -1,0 +1,304 @@
+[
+  {
+    "customerId": 901120934,
+    "advisory": [
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy HEPOL-S001 (Health Insurance) expired on 2025-12-31. Renew to maintain coverage.",
+        "policy_id": "HEPOL-S001"
+      }
+    ],
+    "summary": {
+      "total_policies": 3,
+      "categories_present": [
+        "life_insurance",
+        "health_insurance",
+        "auto_insurance"
+      ],
+      "gaps_identified": 1
+    },
+    "unified_view": [
+      {
+        "customerId": 901120934,
+        "policy_id": "LIPOL-S001",
+        "insurer": "SBI Life",
+        "premium": 45000,
+        "sum_assured": 1000000,
+        "start_date": 20230101,
+        "policy_end": 20421231,
+        "source_collection": "life_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647137e0ec886fffdae05"
+      },
+      {
+        "customerId": 901120934,
+        "policy_id": "AUPOL-S001",
+        "insurer": "HDFC Life",
+        "premium": 25000,
+        "sum_assured": 500000,
+        "start_date": 20240101,
+        "policy_end": 20261231,
+        "source_collection": "auto_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae0a"
+      },
+      {
+        "customerId": 901120934,
+        "policy_id": "HEPOL-S001",
+        "insurer": "Bajaj Allianz",
+        "premium": 18000,
+        "sum_assured": 500000,
+        "start_date": 20240101,
+        "policy_end": 20251231,
+        "source_collection": "health_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae0f"
+      }
+    ]
+  },
+  {
+    "customerId": 901120935,
+    "advisory": [
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy HEPOL-S002 (Health Insurance) expired on 2025-02-28. Renew to maintain coverage.",
+        "policy_id": "HEPOL-S002"
+      }
+    ],
+    "summary": {
+      "total_policies": 3,
+      "categories_present": [
+        "life_insurance",
+        "health_insurance",
+        "auto_insurance"
+      ],
+      "gaps_identified": 1
+    },
+    "unified_view": [
+      {
+        "customerId": 901120935,
+        "policy_id": "LIPOL-S002",
+        "insurer": "HDFC Life",
+        "premium": 32000,
+        "sum_assured": 750000,
+        "start_date": 20230601,
+        "policy_end": 20380531,
+        "source_collection": "life_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647137e0ec886fffdae06"
+      },
+      {
+        "customerId": 901120935,
+        "policy_id": "AUPOL-S002",
+        "insurer": "Tata AIG",
+        "premium": 8000,
+        "sum_assured": 150000,
+        "start_date": 20240315,
+        "policy_end": 20270314,
+        "source_collection": "auto_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae0b"
+      },
+      {
+        "customerId": 901120935,
+        "policy_id": "HEPOL-S002",
+        "insurer": "SBI Life",
+        "premium": 15000,
+        "sum_assured": 400000,
+        "start_date": 20240301,
+        "policy_end": 20250228,
+        "source_collection": "health_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae10"
+      }
+    ]
+  },
+  {
+    "customerId": 901120936,
+    "advisory": [
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy AUPOL-S003 (Auto Insurance) expired on 2026-01-31. Renew to maintain coverage.",
+        "policy_id": "AUPOL-S003"
+      },
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy HEPOL-S003 (Health Insurance) expired on 2026-02-14. Renew to maintain coverage.",
+        "policy_id": "HEPOL-S003"
+      }
+    ],
+    "summary": {
+      "total_policies": 3,
+      "categories_present": [
+        "life_insurance",
+        "health_insurance",
+        "auto_insurance"
+      ],
+      "gaps_identified": 2
+    },
+    "unified_view": [
+      {
+        "customerId": 901120936,
+        "policy_id": "LIPOL-S003",
+        "insurer": "Bajaj Allianz",
+        "premium": 52000,
+        "sum_assured": 1500000,
+        "start_date": 20220101,
+        "policy_end": 20461231,
+        "source_collection": "life_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647137e0ec886fffdae07"
+      },
+      {
+        "customerId": 901120936,
+        "policy_id": "AUPOL-S003",
+        "insurer": "Bajaj Allianz",
+        "premium": 32000,
+        "sum_assured": 600000,
+        "start_date": 20230201,
+        "policy_end": 20260131,
+        "source_collection": "auto_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae0c"
+      },
+      {
+        "customerId": 901120936,
+        "policy_id": "HEPOL-S003",
+        "insurer": "HDFC Life",
+        "premium": 22000,
+        "sum_assured": 600000,
+        "start_date": 20230215,
+        "policy_end": 20260214,
+        "source_collection": "health_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae11"
+      }
+    ]
+  },
+  {
+    "customerId": 901120937,
+    "advisory": [
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy AUPOL-S004 (Auto Insurance) expired on 2025-05-31. Renew to maintain coverage.",
+        "policy_id": "AUPOL-S004"
+      },
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy HEPOL-S004 (Health Insurance) expired on 2025-05-31. Renew to maintain coverage.",
+        "policy_id": "HEPOL-S004"
+      }
+    ],
+    "summary": {
+      "total_policies": 3,
+      "categories_present": [
+        "life_insurance",
+        "health_insurance",
+        "auto_insurance"
+      ],
+      "gaps_identified": 2
+    },
+    "unified_view": [
+      {
+        "customerId": 901120937,
+        "policy_id": "LIPOL-S004",
+        "insurer": "ICICI Lombard",
+        "premium": 22000,
+        "sum_assured": 500000,
+        "start_date": 20240101,
+        "policy_end": 20331231,
+        "source_collection": "life_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647137e0ec886fffdae08"
+      },
+      {
+        "customerId": 901120937,
+        "policy_id": "AUPOL-S004",
+        "insurer": "ICICI Lombard",
+        "premium": 6500,
+        "sum_assured": 120000,
+        "start_date": 20240601,
+        "policy_end": 20250531,
+        "source_collection": "auto_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae0d"
+      },
+      {
+        "customerId": 901120937,
+        "policy_id": "HEPOL-S004",
+        "insurer": "ICICI Lombard",
+        "premium": 12000,
+        "sum_assured": 350000,
+        "start_date": 20240601,
+        "policy_end": 20250531,
+        "source_collection": "health_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647157e0ec886fffdae12"
+      }
+    ]
+  },
+  {
+    "customerId": 901120938,
+    "advisory": [
+      {
+        "type": "TEMPORAL_GAP",
+        "severity": "high",
+        "message": "Lapsed: Policy HEPOL-S005 (Health Insurance) expired on 2026-01-19. Renew to maintain coverage.",
+        "policy_id": "HEPOL-S005"
+      }
+    ],
+    "summary": {
+      "total_policies": 3,
+      "categories_present": [
+        "life_insurance",
+        "health_insurance",
+        "auto_insurance"
+      ],
+      "gaps_identified": 1
+    },
+    "unified_view": [
+      {
+        "customerId": 901120938,
+        "policy_id": "LIPOL-S005",
+        "insurer": "Tata AIG",
+        "premium": 38000,
+        "sum_assured": 800000,
+        "start_date": 20230315,
+        "policy_end": 20430214,
+        "source_collection": "life_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae09"
+      },
+      {
+        "customerId": 901120938,
+        "policy_id": "AUPOL-S005",
+        "insurer": "HDFC Life",
+        "premium": 28000,
+        "sum_assured": 450000,
+        "start_date": 20240115,
+        "policy_end": 20261214,
+        "source_collection": "auto_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647147e0ec886fffdae0e"
+      },
+      {
+        "customerId": 901120938,
+        "policy_id": "HEPOL-S005",
+        "insurer": "Tata AIG",
+        "premium": 16000,
+        "sum_assured": 450000,
+        "start_date": 20240120,
+        "policy_end": 20260119,
+        "source_collection": "health_insurance",
+        "match_method": "PAN_MATCH",
+        "_id": "69a647157e0ec886fffdae13"
+      }
+    ]
+  }
+]

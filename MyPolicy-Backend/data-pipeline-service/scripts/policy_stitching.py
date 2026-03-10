@@ -42,43 +42,42 @@ STANDARDIZED_FILE = SCRIPT_DIR / "standardized_output.json"
 def get_or_create_cipher():
     """Load existing key or generate and persist new one."""
     if KEY_FILE.exists():
-        with open(KEY_FILE, "rb") as f:
-            key = f.read()
+        key = KEY_FILE.read_bytes()
     else:
         key = Fernet.generate_key()
-        with open(KEY_FILE, "wb") as f:
-            f.write(key)
+        KEY_FILE.write_bytes(key)
     return Fernet(key)
 
 
 def encrypt_data(cipher_suite, data):
     """Encrypt PII for storage at rest."""
-    if data is None:
-        return None
-    plain_bytes = str(data).encode("utf-8")
-    return cipher_suite.encrypt(plain_bytes).decode("utf-8")
+    if data is not None and data != "":
+        return cipher_suite.encrypt(str(data).encode()).decode()
+    return None
 
 
 def find_customer_id(customers_col, policy: dict):
     """
-    Match policy to customer using:
-    1. PAN (refCustItNum)
-    2. Mobile + DOB
+    Rule-based matching: PAN (strongest), then Mobile+DOB.
+    Returns (customerId, match_type) or (None, "NO_MATCH").
     """
-    # Rule 1: Match by PAN
-    if policy.get("pan"):
-        customer = customers_col.find_one({"refCustItNum": policy.get("pan")})
-        if customer:
-            return customer.get("customerId"), "PAN_MATCH"
+    # Rule 1: Match by PAN (Strongest)
+    pan = policy.get("pan")
+    if pan:
+        match = customers_col.find_one({"refCustItNum": pan})
+        if match:
+            return match.get("customerId"), "PAN_MATCH"
 
-    # Rule 2: Match by Mobile + DOB
-    if policy.get("mobile") and policy.get("dob"):
-        customer = customers_col.find_one({
-            "refPhoneMobile": policy.get("mobile"),
-            "datBirthCust": policy.get("dob")
+    # Rule 2: Match by Mobile + DOB (Secondary)
+    mobile = policy.get("mobile")
+    dob = policy.get("dob")
+    if mobile is not None and dob is not None:
+        match = customers_col.find_one({
+            "refPhoneMobile": mobile,
+            "datBirthCust": dob,
         })
-        if customer:
-            return customer.get("customerId"), "MOBILE_DOB_MATCH"
+        if match:
+            return match.get("customerId"), "MOBILE_DOB_MATCH"
 
     return None, "NO_MATCH"
 
@@ -154,10 +153,11 @@ def main():
     if stitched_results:
         print("\nSample unified record:")
         sample = stitched_results[0].copy()
+        # Don't print full encrypted values in sample
         if "encrypted_pan" in sample:
-            sample["encrypted_pan"] = sample["encrypted_pan"][:20] + "..." if len(sample["encrypted_pan"]) > 20 else sample["encrypted_pan"]
+            sample["encrypted_pan"] = "<encrypted>"
         if "encrypted_mobile" in sample:
-            sample["encrypted_mobile"] = sample["encrypted_mobile"][:20] + "..." if len(sample["encrypted_mobile"]) > 20 else sample["encrypted_mobile"]
+            sample["encrypted_mobile"] = "<encrypted>"
         print(json.dumps(sample, indent=2, default=str))
 
     print("=" * 60)

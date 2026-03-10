@@ -22,4 +22,10 @@ public interface CustomerService {
   Optional<CustomerResponse> searchByEmail(String email);
 
   Optional<CustomerResponse> searchByPan(String pan);
+
+  /**
+   * Get customer details by Integer customerId (from customer_details collection).
+   * Used for users who logged in via full name + PAN.
+   */
+  Optional<CustomerResponse> getCustomerDetailsByIntegerId(Integer customerId);
 }

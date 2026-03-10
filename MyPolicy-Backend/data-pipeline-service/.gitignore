@@ -1,10 +1,24 @@
+# Build
 target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+*.jar
+*.war
+*.class
+
+# IDE
 .idea/
 *.iml
-*.class
+.vscode/
+*.swp
+*.swo
+
+# Logs
 *.log
+logs/
+
+# Local config (keep template, exclude secrets)
+# application-local.yaml
+scripts/.encryption_key
+
+# OS
 .DS_Store
-storage/
+Thumbs.db

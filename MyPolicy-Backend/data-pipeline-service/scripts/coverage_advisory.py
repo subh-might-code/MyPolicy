@@ -38,132 +38,155 @@ def parse_yyyymmdd(value):
     """Parse YYYYMMDD int to date, or return None."""
     if value is None:
         return None
-    s = str(value)
-    if len(s) != 8 or not s.isdigit():
-        return None
     try:
-        year = int(s[0:4])
-        month = int(s[4:6])
-        day = int(s[6:8])
-        return datetime(year, month, day).date()
-    except ValueError:
+        s = str(int(value))
+        if len(s) != 8:
+            return None
+        return datetime(int(s[:4]), int(s[4:6]), int(s[6:8]))
+    except (ValueError, TypeError):
         return None
 
 
 def generate_coverage_advisory(db, customer_id: int) -> dict:
-    """Generate advisory for a single customer."""
-    advisories = []
-    categories = {}
-    
-    # Check each insurance category
-    for category in REQUIRED_CATEGORIES:
-        col = db[category]
-        policies = list(col.find({"customerId": customer_id}))
-        categories[category] = len(policies)
-        
-        if not policies:
-            advisories.append({
-                "type": "PRODUCT_GAP",
-                "severity": "HIGH",
-                "message": f"No {category.replace('_', ' ')} policy found. Consider buying coverage.",
-                "action": "Review available plans"
+    """
+    Generates a human-readable advisory for a customer based on their
+    unified portfolio. Identifies Protection Gaps, Sum Assured adequacy,
+    and Temporal gaps.
+    """
+    policies = list(db["unified_portfolio"].find({"customerId": customer_id}))
+    categories = {p.get("source_collection") for p in policies if p.get("source_collection")}
+    advisory_notes = []
+    today = datetime.now().date()
+
+    # 1. Product Presence Gap
+    for cat in REQUIRED_CATEGORIES:
+        if cat not in categories:
+            label = cat.replace("_", " ").title()
+            advisory_notes.append({
+                "type": "PROTECTION_GAP",
+                "severity": "high",
+                "message": f"Protection Gap: You currently have no {label} coverage.",
             })
-        else:
-            for policy in policies:
-                # Check sum assured adequacy (for life insurance)
-                if category == "life_insurance":
-                    sum_assured = policy.get("SumAssured") or 0
-                    premium = policy.get("AnnualPrem") or 0
-                    if sum_assured < premium * LIFE_SUM_ASSURED_MULTIPLIER:
-                        advisories.append({
-                            "type": "PROTECTION_GAP",
-                            "severity": "MEDIUM",
-                            "message": f"Life coverage of {sum_assured} is below recommended {premium * LIFE_SUM_ASSURED_MULTIPLIER}. Consider increasing sum assured.",
-                            "action": "Top-up protection"
-                        })
-                
-                # Check health coverage
-                elif category == "health_insurance":
-                    coverage = policy.get("Coverage Amount") or 0
-                    if coverage < HEALTH_COVERAGE_MIN:
-                        advisories.append({
-                            "type": "PROTECTION_GAP",
-                            "severity": "MEDIUM",
-                            "message": f"Health coverage of {coverage} is below recommended {HEALTH_COVERAGE_MIN}. Consider increasing coverage.",
-                            "action": "Increase health coverage"
-                        })
-                
-                # Check auto IDV
-                elif category == "auto_insurance":
-                    idv = policy.get("IDV") or 0
-                    if idv < AUTO_IDV_MIN:
-                        advisories.append({
-                            "type": "PROTECTION_GAP",
-                            "severity": "LOW",
-                            "message": f"Auto IDV of {idv} is below recommended {AUTO_IDV_MIN}.",
-                            "action": "Consider increasing IDV"
-                        })
-                
-                # Check expiry date
-                policy_end = policy.get("PolicyEnd") or policy.get("Policy End Date") or policy.get("PolicyEndDate")
-                if policy_end:
-                    expiry_date = parse_yyyymmdd(policy_end)
-                    if expiry_date:
-                        today = datetime.now().date()
-                        days_left = (expiry_date - today).days
-                        
-                        if days_left < 0:
-                            advisories.append({
-                                "type": "TEMPORAL_GAP",
-                                "severity": "HIGH",
-                                "message": f"{category.replace('_', ' ')} policy expired on {expiry_date}. Renew immediately.",
-                                "action": "Renew policy"
-                            })
-                        elif days_left < DAYS_NEARING_EXPIRY:
-                            advisories.append({
-                                "type": "TEMPORAL_GAP",
-                                "severity": "MEDIUM",
-                                "message": f"{category.replace('_', ' ')} policy expires in {days_left} days. Renew soon.",
-                                "action": "Schedule renewal"
-                            })
-    
-    summary = {
-        "total_policies": sum(categories.values()),
-        "categories_present": [c for c, count in categories.items() if count > 0],
-        "gaps_identified": len(advisories)
-    }
-    
+
+    # 2. Sum Insured Adequacy & 3. Temporal Gaps
+    for p in policies:
+        source = p.get("source_collection")
+        premium = p.get("premium") or 0
+        sum_assured = p.get("sum_assured") or 0
+        policy_end_val = p.get("policy_end")
+        policy_end_date = parse_yyyymmdd(policy_end_val)
+
+        # Life Insurance: Sum Assured should be ~10x annual premium
+        if source == "life_insurance" and premium:
+            if sum_assured < (premium * LIFE_SUM_ASSURED_MULTIPLIER):
+                advisory_notes.append({
+                    "type": "SUM_ASSURED_ADEQUACY",
+                    "severity": "medium",
+                    "message": (
+                        f"Advisory: Your Life Insurance coverage (₹{sum_assured:,}) may be low "
+                        f"relative to your premium (₹{premium:,}). Consider coverage at least "
+                        f"{LIFE_SUM_ASSURED_MULTIPLIER}x your annual premium."
+                    ),
+                    "policy_id": p.get("policy_id"),
+                })
+
+        # Health Insurance: Minimum coverage threshold
+        if source == "health_insurance" and sum_assured and sum_assured < HEALTH_COVERAGE_MIN:
+            advisory_notes.append({
+                "type": "SUM_ASSURED_ADEQUACY",
+                "severity": "medium",
+                "message": (
+                    f"Advisory: Your Health Insurance coverage (₹{sum_assured:,}) is below the "
+                    f"recommended minimum of ₹{HEALTH_COVERAGE_MIN:,} for adequate protection."
+                ),
+                "policy_id": p.get("policy_id"),
+            })
+
+        # Auto Insurance: IDV adequacy
+        if source == "auto_insurance" and sum_assured and sum_assured < AUTO_IDV_MIN:
+            advisory_notes.append({
+                "type": "SUM_ASSURED_ADEQUACY",
+                "severity": "low",
+                "message": (
+                    f"Advisory: Your Auto Insurance IDV (₹{sum_assured:,}) may be lower than "
+                    f"the recommended ₹{AUTO_IDV_MIN:,}."
+                ),
+                "policy_id": p.get("policy_id"),
+            })
+
+        # 3. Temporal Gaps
+        if policy_end_date:
+            end_date = policy_end_date.date()
+            days_remaining = (end_date - today).days
+
+            if days_remaining < 0:
+                advisory_notes.append({
+                    "type": "TEMPORAL_GAP",
+                    "severity": "high",
+                    "message": (
+                        f"Lapsed: Policy {p.get('policy_id', 'N/A')} ({source.replace('_', ' ').title()}) "
+                        f"expired on {end_date.strftime('%Y-%m-%d')}. Renew to maintain coverage."
+                    ),
+                    "policy_id": p.get("policy_id"),
+                })
+            elif days_remaining <= DAYS_NEARING_EXPIRY:
+                advisory_notes.append({
+                    "type": "TEMPORAL_GAP",
+                    "severity": "medium",
+                    "message": (
+                        f"Expiring soon: Policy {p.get('policy_id', 'N/A')} ({source.replace('_', ' ').title()}) "
+                        f"expires in {days_remaining} days ({end_date.strftime('%Y-%m-%d')}). "
+                        "Consider renewing before lapse."
+                    ),
+                    "policy_id": p.get("policy_id"),
+                })
+
+    # Sanitize policies for output (exclude encrypted PII)
+    unified_view = []
+    for p in policies:
+        safe = {k: v for k, v in p.items() if k not in ("encrypted_pan", "encrypted_mobile", "_id")}
+        safe["_id"] = str(p.get("_id", ""))
+        unified_view.append(safe)
+
     return {
         "customerId": customer_id,
-        "summary": summary,
-        "advisory": advisories,
-        "generated_at": datetime.now().isoformat()
+        "advisory": advisory_notes,
+        "summary": {
+            "total_policies": len(policies),
+            "categories_present": list(categories),
+            "gaps_identified": len(advisory_notes),
+        },
+        "unified_view": unified_view,
     }
 
 
 def insert_demo_records(db, customer_id: int):
-    """Insert demo policies for testing."""
-    db["unified_portfolio"].insert_one({
-        "customerId": customer_id,
-        "policy_id": "DEMO_LIFE_001",
-        "insurer": "MaxLife",
-        "premium": 50000,
-        "sum_assured": 250000,
-        "start_date": 20230101,
-        "policy_end": 20330101,
-        "source_collection": "life_insurance"
-    })
-    
-    db["unified_portfolio"].insert_one({
-        "customerId": customer_id,
-        "policy_id": "DEMO_AUTO_001",
-        "insurer": "HDFC ERGO",
-        "premium": 15000,
-        "sum_assured": 100000,
-        "start_date": 20230601,
-        "policy_end": 20240531,
-        "source_collection": "auto_insurance"
-    })
+    """
+    Inserts sample stitched records for demonstration when no matches exist.
+    Uses realistic data to showcase all advisory types (Product Gap, Sum Assured, Temporal).
+    """
+    from datetime import timedelta
+    today = datetime.now().date()
+    soon = (today + timedelta(days=45)).strftime("%Y%m%d")
+    lapsed = (today - timedelta(days=30)).strftime("%Y%m%d")
+    far = (today + timedelta(days=400)).strftime("%Y%m%d")
+
+    demo_policies = [
+        # Life: low sum assured (5000 < 10 * 50000)
+        {"customerId": customer_id, "policy_id": "LIPOL-DEMO1", "insurer": "SBI Life", "premium": 50000,
+         "sum_assured": 5000, "start_date": 20220101, "policy_end": int(far), "source_collection": "life_insurance"},
+        # Health: below 300k
+        {"customerId": customer_id, "policy_id": "HEPOL-DEMO1", "insurer": "HDFC Life", "premium": 15000,
+         "sum_assured": 100000, "start_date": 20230101, "policy_end": int(far), "source_collection": "health_insurance"},
+        # Auto: expiring soon
+        {"customerId": customer_id, "policy_id": "AUPOL-DEMO1", "insurer": "Tata AIG", "premium": 8000,
+         "sum_assured": 250000, "start_date": 20240101, "policy_end": int(soon), "source_collection": "auto_insurance"},
+        # Life: lapsed
+        {"customerId": customer_id, "policy_id": "LIPOL-DEMO2", "insurer": "ICICI", "premium": 12000,
+         "sum_assured": 200000, "start_date": 20200101, "policy_end": int(lapsed), "source_collection": "life_insurance"},
+    ]
+    db["unified_portfolio"].insert_many(demo_policies)
+    print(f"Inserted {len(demo_policies)} demo policies for customer {customer_id}")
 
 
 def main():

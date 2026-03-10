@@ -1,121 +1,338 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Insurer Portal – Policy File Upload</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyPolicy – Insurer Data Upload</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a2332;
+            --border: #2d3a4d;
+            --text: #e6edf3;
+            --muted: #8b9cb3;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --success: #22c55e;
+            --error: #ef4444;
+            --radius: 10px;
+            --radius-sm: 6px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+        .layout {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        select, .file-input-wrapper {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .file-input-wrapper:hover {
+            border-color: var(--accent);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .file-input-wrapper.has-file {
+            border-color: var(--success);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-placeholder {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+        .file-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--success);
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-primary:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-sm);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            display: none;
+        }
+        .result.success {
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: var(--success);
+        }
+        .result.error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: var(--error);
+        }
+        .result-visible { display: block !important; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .stat {
+            text-align: center;
+            padding: 0.75rem;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-top: 0.25rem;
+        }
+        .help {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        .help ul {
+            margin-left: 1.25rem;
+            margin-top: 0.5rem;
+        }
+        .help li {
+            margin-bottom: 0.25rem;
+        }
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <div class="header-content">
-        <div class="logo">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="8" fill="currentColor"/>
-            <path d="M10 22V10l6 6 6-6v12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span>MyPolicy</span>
-        </div>
-        <h1>Insurer Portal</h1>
-        <p class="subtitle">Upload and process policy files (CSV/Excel)</p>
-      </div>
-    </header>
+    <div class="layout">
+        <header>
+            <h1>MyPolicy Insurer Portal</h1>
+            <p class="subtitle">Upload policy or customer data CSV files</p>
+        </header>
 
-    <main class="main">
-      <section class="card upload-card">
-        <h2>1. Upload Policy File</h2>
-        <p class="card-desc">Select your CSV or Excel policy file and choose the insurer type. Customers must exist in customer-service; policies will be matched by mobile, email, or PAN.</p>
-        <form id="upload-form" class="form">
-          <div class="form-group">
-            <label for="file">Policy File *</label>
-            <div class="file-input-wrapper">
-              <input type="file" id="file" name="file" accept=".csv,.xls,.xlsx" required>
-              <span class="file-label" id="file-label">Choose CSV or Excel file</span>
+        <div class="card">
+            <div class="card-title">Upload File</div>
+            <form id="uploadForm">
+                <label for="collection">Data Type</label>
+                <select id="collection" name="collectionName" required>
+                    <option value="">Select data type…</option>
+                    <option value="customer_details">Customer Details</option>
+                    <option value="life_insurance">Life Insurance</option>
+                    <option value="health_insurance">Health Insurance</option>
+                    <option value="auto_insurance">Auto Insurance</option>
+                </select>
+
+                <label>CSV File</label>
+                <div class="file-input-wrapper" id="fileWrapper" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" name="file" accept=".csv" required>
+                    <span class="file-placeholder" id="filePlaceholder">Click to select a CSV file</span>
+                    <span class="file-name" id="fileName" style="display:none"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    Upload & Process
+                </button>
+            </form>
+
+            <div class="result" id="result"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Accepted Formats</div>
+            <div class="help">
+                <ul>
+                    <li><strong>customer_details</strong> – Customer master (customerId, refCustItNum, refPhoneMobile, custEmailID, datBirthCust)</li>
+                    <li><strong>life_insurance</strong> – Life policy data (PolicyNum, AnnualPrem, PolicyStart, PAN, Mobile, Email)</li>
+                    <li><strong>health_insurance</strong> – Health policy data (Policy Number, Annual Premium, Policy Start Date, PAN, Mobile, Email)</li>
+                    <li><strong>auto_insurance</strong> – Auto policy data (PolicyNumber, AnnualPremium, PolicyStartDate, PAN, Mobile, Email)</li>
+                </ul>
+                <p style="margin-top:0.75rem">Upload <strong>customer_details</strong> first, then policy files. Overlapping PAN/Mobile/Email values enable stitching.</p>
             </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="insurerId">Insurer Type *</label>
-              <select id="insurerId" name="insurerId" required>
-                <option value="">Select insurer...</option>
-                <option value="HEALTH_INSURER">Health Insurance</option>
-                <option value="AUTO_INSURER">Auto / Motor Insurance</option>
-                <option value="LIFE_INSURER">Life Insurance</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="uploadedBy">Uploaded By *</label>
-              <input type="text" id="uploadedBy" name="uploadedBy" placeholder="e.g. insurer@company.com" required>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary" id="upload-btn">
-            <span class="btn-text">Upload File</span>
-            <span class="btn-loading" aria-hidden="true"></span>
-          </button>
-        </form>
-      </section>
-
-      <section class="card job-card" id="job-section" style="display: none;">
-        <h2>2. Job Details</h2>
-        <div class="job-info">
-          <div class="job-id-row">
-            <strong>Job ID:</strong>
-            <code id="job-id"></code>
-            <button type="button" class="btn-icon" id="copy-job-id" title="Copy Job ID">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="9" y="9" width="13" height="13" rx="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-            </button>
-          </div>
-          <div class="status-badge" id="status-badge">UPLOADED</div>
-          <div class="status-detail" id="status-detail"></div>
         </div>
-        <div class="actions">
-          <button type="button" class="btn btn-secondary" id="process-btn">
-            <span class="btn-text">Start Processing</span>
-            <span class="btn-loading" aria-hidden="true"></span>
-          </button>
-          <button type="button" class="btn btn-outline" id="refresh-status-btn">Refresh Status</button>
-        </div>
-      </section>
+    </div>
 
-      <section class="card result-card" id="result-section" style="display: none;">
-        <h2>3. Processing Result</h2>
-        <div class="result-grid">
-          <div class="result-item">
-            <span class="result-label">Total Records</span>
-            <span class="result-value" id="total-records">–</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Processed</span>
-            <span class="result-value" id="processed-records">–</span>
-          </div>
-          <div class="result-item">
-            <span class="result-label">Status</span>
-            <span class="result-value status-text" id="final-status">–</span>
-          </div>
-        </div>
-        <div id="failure-reason" class="failure-reason" style="display: none;"></div>
-        <div id="verification-failures" class="verification-failures" style="display: none;">
-          <h3 class="verification-failures-title">Verification Failures</h3>
-          <p class="verification-failures-desc">The following policies could not be matched or verified:</p>
-          <div id="verification-failures-list" class="verification-failures-list"></div>
-        </div>
-      </section>
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileWrapper = document.getElementById('fileWrapper');
+        const filePlaceholder = document.getElementById('filePlaceholder');
+        const fileNameEl = document.getElementById('fileName');
+        const resultEl = document.getElementById('result');
+        const submitBtn = document.getElementById('submitBtn');
 
-      <div id="toast" class="toast" aria-live="polite"></div>
-    </main>
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                filePlaceholder.style.display = 'none';
+                fileNameEl.textContent = this.files[0].name;
+                fileNameEl.style.display = 'inline';
+                fileWrapper.classList.add('has-file');
+            } else {
+                filePlaceholder.style.display = 'inline';
+                fileNameEl.style.display = 'none';
+                fileWrapper.classList.remove('has-file');
+            }
+        });
 
-    <footer class="footer">
-      <p>Data Pipeline Standalone · Insurer Portal v1.0 · <a href="/api/public/v1/ingestion/jobs" target="_blank">View MongoDB Jobs</a></p>
-    </footer>
-  </div>
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (!fileInput.files.length) {
+                showResult('Please select a CSV file.', 'error');
+                return;
+            }
+            const collection = document.getElementById('collection').value;
+            if (!collection) {
+                showResult('Please select a data type.', 'error');
+                return;
+            }
 
-  <script src="app.js"></script>
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('collectionName', collection);
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Processing…';
+            resultEl.className = 'result';
+            resultEl.classList.remove('result-visible');
+
+            try {
+                const res = await fetch('/api/pipeline/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showResult(data.message || data.error || 'Upload failed', 'error');
+                    return;
+                }
+
+                let html = `<strong>${data.message}</strong>`;
+                if (data.totalProcessed !== undefined) {
+                    html += `
+                    <div class="stats">
+                        <div class="stat"><span class="stat-value">${data.totalProcessed}</span><span class="stat-label">Processed</span></div>
+                        <div class="stat"><span class="stat-value">${data.matched}</span><span class="stat-label">Matched</span></div>
+                        <div class="stat"><span class="stat-value">${data.unmatched}</span><span class="stat-label">Unmatched</span></div>
+                    </div>`;
+                }
+                showResult(html, 'success', true);
+            } catch (err) {
+                showResult('Network error. Is the service running on port 8081?', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Upload & Process';
+            }
+        });
+
+        function showResult(msg, type, isHtml) {
+            resultEl.innerHTML = isHtml ? msg : (msg || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            resultEl.className = 'result ' + type + ' result-visible';
+        }
+    </script>
 </body>
 </html>

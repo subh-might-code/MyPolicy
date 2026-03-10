@@ -5,7 +5,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@FeignClient(name = "data-pipeline-service")
+@FeignClient(name = "data-pipeline-service", contextId = "ingestionClient")
 public interface IngestionClient {
 
   @PostMapping(value = "/api/v1/ingestion/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

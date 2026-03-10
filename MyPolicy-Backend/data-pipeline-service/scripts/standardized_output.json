@@ -1,0 +1,273 @@
+{
+  "summary": {
+    "life_insurance": 5,
+    "customer_details": 5,
+    "auto_insurance": 5,
+    "health_insurance": 5
+  },
+  "data": {
+    "life_insurance": [
+      {
+        "source_collection": "life_insurance",
+        "original_id": "69a647048907227fca64a17f",
+        "policy_id": "LIPOL-S001",
+        "premium": 45000,
+        "start_date": 20230101,
+        "policy_end": 20421231,
+        "sum_assured": 1000000,
+        "pan": "AKCPK1123L",
+        "mobile": 919876543210,
+        "email": "amit.kulkarni@gmail.com",
+        "dob": 19920314,
+        "insurer": "SBI Life"
+      },
+      {
+        "source_collection": "life_insurance",
+        "original_id": "69a647048907227fca64a180",
+        "policy_id": "LIPOL-S002",
+        "premium": 32000,
+        "start_date": 20230601,
+        "policy_end": 20380531,
+        "sum_assured": 750000,
+        "pan": "BPQPP2345M",
+        "mobile": 919812345678,
+        "email": "sneha.patil@gmail.com",
+        "dob": 19950721,
+        "insurer": "HDFC Life"
+      },
+      {
+        "source_collection": "life_insurance",
+        "original_id": "69a647048907227fca64a181",
+        "policy_id": "LIPOL-S003",
+        "premium": 52000,
+        "start_date": 20220101,
+        "policy_end": 20461231,
+        "sum_assured": 1500000,
+        "pan": "CDEPD3456N",
+        "mobile": 919823456789,
+        "email": "rahul.deshmukh@gmail.com",
+        "dob": 19901109,
+        "insurer": "Bajaj Allianz"
+      },
+      {
+        "source_collection": "life_insurance",
+        "original_id": "69a647048907227fca64a182",
+        "policy_id": "LIPOL-S004",
+        "premium": 22000,
+        "start_date": 20240101,
+        "policy_end": 20331231,
+        "sum_assured": 500000,
+        "pan": "DEFPJ4567P",
+        "mobile": 919834567890,
+        "email": "pooja.joshi@gmail.com",
+        "dob": 19960830,
+        "insurer": "ICICI Lombard"
+      },
+      {
+        "source_collection": "life_insurance",
+        "original_id": "69a647048907227fca64a183",
+        "policy_id": "LIPOL-S005",
+        "premium": 38000,
+        "start_date": 20230315,
+        "policy_end": 20430214,
+        "sum_assured": 800000,
+        "pan": "EFGH55678Q",
+        "mobile": 919845678901,
+        "email": "kunal.shah@gmail.com",
+        "dob": 19940117,
+        "insurer": "Tata AIG"
+      }
+    ],
+    "customer_details": [
+      {
+        "source_collection": "customer_details",
+        "original_id": "69a647048907227fca64a175",
+        "cust_id": 901120934,
+        "pan": "AKCPK1123L",
+        "mobile": 919876543210,
+        "email": "amit.kulkarni@gmail.com",
+        "dob": 19920314
+      },
+      {
+        "source_collection": "customer_details",
+        "original_id": "69a647048907227fca64a176",
+        "cust_id": 901120935,
+        "pan": "BPQPP2345M",
+        "mobile": 919812345678,
+        "email": "sneha.patil@gmail.com",
+        "dob": 19950721
+      },
+      {
+        "source_collection": "customer_details",
+        "original_id": "69a647048907227fca64a177",
+        "cust_id": 901120936,
+        "pan": "CDEPD3456N",
+        "mobile": 919823456789,
+        "email": "rahul.deshmukh@gmail.com",
+        "dob": 19901109
+      },
+      {
+        "source_collection": "customer_details",
+        "original_id": "69a647048907227fca64a178",
+        "cust_id": 901120937,
+        "pan": "DEFPJ4567P",
+        "mobile": 919834567890,
+        "email": "pooja.joshi@gmail.com",
+        "dob": 19960830
+      },
+      {
+        "source_collection": "customer_details",
+        "original_id": "69a647048907227fca64a179",
+        "cust_id": 901120938,
+        "pan": "EFGH55678Q",
+        "mobile": 919845678901,
+        "email": "kunal.shah@gmail.com",
+        "dob": 19940117
+      }
+    ],
+    "auto_insurance": [
+      {
+        "source_collection": "auto_insurance",
+        "original_id": "69a647048907227fca64a17a",
+        "policy_id": "AUPOL-S001",
+        "premium": 25000,
+        "start_date": 20240101,
+        "policy_end": 20261231,
+        "sum_assured": 500000,
+        "pan": "AKCPK1123L",
+        "mobile": 919876543210,
+        "email": "amit.kulkarni@gmail.com",
+        "dob": 19920314,
+        "insurer": "HDFC Life"
+      },
+      {
+        "source_collection": "auto_insurance",
+        "original_id": "69a647048907227fca64a17b",
+        "policy_id": "AUPOL-S002",
+        "premium": 8000,
+        "start_date": 20240315,
+        "policy_end": 20270314,
+        "sum_assured": 150000,
+        "pan": "BPQPP2345M",
+        "mobile": 919812345678,
+        "email": "sneha.patil@gmail.com",
+        "dob": 19950721,
+        "insurer": "Tata AIG"
+      },
+      {
+        "source_collection": "auto_insurance",
+        "original_id": "69a647048907227fca64a17c",
+        "policy_id": "AUPOL-S003",
+        "premium": 32000,
+        "start_date": 20230201,
+        "policy_end": 20260131,
+        "sum_assured": 600000,
+        "pan": "CDEPD3456N",
+        "mobile": 919823456789,
+        "email": "rahul.deshmukh@gmail.com",
+        "dob": 19901109,
+        "insurer": "Bajaj Allianz"
+      },
+      {
+        "source_collection": "auto_insurance",
+        "original_id": "69a647048907227fca64a17d",
+        "policy_id": "AUPOL-S004",
+        "premium": 6500,
+        "start_date": 20240601,
+        "policy_end": 20250531,
+        "sum_assured": 120000,
+        "pan": "DEFPJ4567P",
+        "mobile": 919834567890,
+        "email": "pooja.joshi@gmail.com",
+        "dob": 19960830,
+        "insurer": "ICICI Lombard"
+      },
+      {
+        "source_collection": "auto_insurance",
+        "original_id": "69a647048907227fca64a17e",
+        "policy_id": "AUPOL-S005",
+        "premium": 28000,
+        "start_date": 20240115,
+        "policy_end": 20261214,
+        "sum_assured": 450000,
+        "pan": "EFGH55678Q",
+        "mobile": 919845678901,
+        "email": "kunal.shah@gmail.com",
+        "dob": 19940117,
+        "insurer": "HDFC Life"
+      }
+    ],
+    "health_insurance": [
+      {
+        "source_collection": "health_insurance",
+        "original_id": "69a647048907227fca64a184",
+        "policy_id": "HEPOL-S001",
+        "premium": 18000,
+        "start_date": 20240101,
+        "policy_end": 20251231,
+        "sum_assured": 500000,
+        "pan": "AKCPK1123L",
+        "mobile": 919876543210,
+        "email": "amit.kulkarni@gmail.com",
+        "dob": 19920314,
+        "insurer": "Bajaj Allianz"
+      },
+      {
+        "source_collection": "health_insurance",
+        "original_id": "69a647048907227fca64a185",
+        "policy_id": "HEPOL-S002",
+        "premium": 15000,
+        "start_date": 20240301,
+        "policy_end": 20250228,
+        "sum_assured": 400000,
+        "pan": "BPQPP2345M",
+        "mobile": 919812345678,
+        "email": "sneha.patil@gmail.com",
+        "dob": 19950721,
+        "insurer": "SBI Life"
+      },
+      {
+        "source_collection": "health_insurance",
+        "original_id": "69a647048907227fca64a186",
+        "policy_id": "HEPOL-S003",
+        "premium": 22000,
+        "start_date": 20230215,
+        "policy_end": 20260214,
+        "sum_assured": 600000,
+        "pan": "CDEPD3456N",
+        "mobile": 919823456789,
+        "email": "rahul.deshmukh@gmail.com",
+        "dob": 19901109,
+        "insurer": "HDFC Life"
+      },
+      {
+        "source_collection": "health_insurance",
+        "original_id": "69a647048907227fca64a187",
+        "policy_id": "HEPOL-S004",
+        "premium": 12000,
+        "start_date": 20240601,
+        "policy_end": 20250531,
+        "sum_assured": 350000,
+        "pan": "DEFPJ4567P",
+        "mobile": 919834567890,
+        "email": "pooja.joshi@gmail.com",
+        "dob": 19960830,
+        "insurer": "ICICI Lombard"
+      },
+      {
+        "source_collection": "health_insurance",
+        "original_id": "69a647048907227fca64a188",
+        "policy_id": "HEPOL-S005",
+        "premium": 16000,
+        "start_date": 20240120,
+        "policy_end": 20260119,
+        "sum_assured": 450000,
+        "pan": "EFGH55678Q",
+        "mobile": 919845678901,
+        "email": "kunal.shah@gmail.com",
+        "dob": 19940117,
+        "insurer": "Tata AIG"
+      }
+    ]
+  }
+}

@@ -90,16 +90,6 @@ try {
     exit 1
 }
 
-# Check PostgreSQL
-Write-Host "Checking PostgreSQL..." -ForegroundColor Cyan
-$pgRunning = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue | Where-Object {$_.Status -eq "Running"}
-if ($pgRunning) {
-    Write-Host "✓ PostgreSQL is running" -ForegroundColor Green
-} else {
-    Write-Host "⚠️  PostgreSQL service not detected or not running" -ForegroundColor Yellow
-    Write-Host "   Please ensure PostgreSQL is installed and running on localhost:5432" -ForegroundColor Yellow
-}
-
 # Check MongoDB
 Write-Host "Checking MongoDB..." -ForegroundColor Cyan
 $mongoRunning = Get-Service -Name "MongoDB" -ErrorAction SilentlyContinue | Where-Object {$_.Status -eq "Running"}

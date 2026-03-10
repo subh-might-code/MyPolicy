@@ -23,6 +23,7 @@ import java.util.Optional;
 public class CustomerServiceImpl implements CustomerService {
 
   private final CustomerRepository customerRepository;
+  private final com.mypolicy.customer.repository.CustomerDetailsRepository customerDetailsRepository;
   private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
   private final com.mypolicy.customer.security.JwtService jwtService;
 
@@ -37,6 +38,7 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     Customer customer = new Customer();
+    customer.setCustomerId(java.util.UUID.randomUUID().toString());
     customer.setFirstName(request.getFirstName());
     customer.setLastName(request.getLastName());
     customer.setEmail(request.getEmail());
@@ -53,15 +55,17 @@ public class CustomerServiceImpl implements CustomerService {
 
   @Override
   public com.mypolicy.customer.dto.AuthResponse login(LoginRequest request) {
-    Customer customer = customerRepository.findByEmail(request.getEmail())
-        .orElseThrow(() -> new InvalidCredentialsException());
+    // Login uses customer_details: full name = Customer ID/User ID, PAN = password
+    String fullName = request.getCustomerIdOrUserId() != null ? request.getCustomerIdOrUserId().trim() : "";
+    String pan = request.getPassword() != null ? request.getPassword().trim() : "";
 
-    if (!passwordEncoder.matches(request.getPassword(), customer.getPasswordHash())) {
-      throw new InvalidCredentialsException();
-    }
+    com.mypolicy.customer.model.CustomerDetails customerDetails =
+        customerDetailsRepository.findFirstByCustomerFullNameIgnoreCaseAndRefCustItNum(fullName, pan)
+            .orElseThrow(() -> new InvalidCredentialsException());
 
-    String token = jwtService.generateToken(customer.getEmail());
-    return new com.mypolicy.customer.dto.AuthResponse(token, mapToResponse(customer));
+    String token = jwtService.generateToken(customerDetails.getCustomerFullName());
+    CustomerResponse response = mapCustomerDetailsToResponse(customerDetails);
+    return new com.mypolicy.customer.dto.AuthResponse(token, response);
   }
 
   @Override
@@ -148,6 +152,12 @@ public class CustomerServiceImpl implements CustomerService {
         .map(this::mapToResponse);
   }
 
+  @Override
+  public Optional<CustomerResponse> getCustomerDetailsByIntegerId(Integer customerId) {
+    return customerDetailsRepository.findFirstByCustomerId(customerId)
+        .map(this::mapCustomerDetailsToResponse);
+  }
+
   private CustomerResponse mapToResponse(Customer c) {
     return CustomerResponse.builder()
         .customerId(c.getCustomerId())
@@ -159,6 +169,23 @@ public class CustomerServiceImpl implements CustomerService {
         .panNumber(c.getPanNumber())
         .dateOfBirth(c.getDateOfBirth())
         .address(c.getAddress())
+        .build();
+  }
+
+  /** Maps CustomerDetails (from customer_details collection) to CustomerResponse for login */
+  private CustomerResponse mapCustomerDetailsToResponse(com.mypolicy.customer.model.CustomerDetails cd) {
+    String customerIdStr = cd.getCustomerId() != null ? String.valueOf(cd.getCustomerId()) : "";
+    String mobile = cd.getRefPhoneMobile() != null ? cd.getRefPhoneMobile().toString() : null;
+    return CustomerResponse.builder()
+        .customerId(customerIdStr)
+        .firstName(cd.getCustomerFullName())
+        .lastName("")
+        .email(cd.getCustEmailID())
+        .mobileNumber(mobile)
+        .status(com.mypolicy.customer.model.CustomerStatus.ACTIVE)
+        .panNumber(null) // Do not expose PAN in response
+        .dateOfBirth(null)
+        .address(null)
         .build();
   }
 }

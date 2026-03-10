@@ -1,213 +1,155 @@
-version: "3.8"
-
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: mypolicy-postgres
-    environment:
-      POSTGRES_DB: mypolicy_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - mypolicy-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # MongoDB Database
-  mongodb:
-    image: mongo:7-jammy
-    container_name: mypolicy-mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin123
-      MONGO_INITDB_DATABASE: mypolicy
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - mypolicy-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Configuration Service (Must start first)
   config-service:
     build:
       context: ./config-service
       dockerfile: Dockerfile
-    container_name: mypolicy-config-service
+    container_name: config-service
     ports:
-      - "8888:8888"
-    environment:
-      SPRING_PROFILES_ACTIVE: native
-      SPRING_SECURITY_USER_NAME: admin
-      SPRING_SECURITY_USER_PASSWORD: config123
+      - "8889:8888"
     networks:
-      - mypolicy-network
+      - mypolicy-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8888/actuator/health"]
-      interval: 10s
+      test: ["CMD", "curl", "-sf", "http://localhost:8888/actuator/health"]
+      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 40s
+      retries: 3
+      start_period: 30s
 
-  # Discovery Service (Eureka Server)
   discovery-service:
     build:
       context: ./discovery-service
       dockerfile: Dockerfile
-    container_name: mypolicy-discovery-service
+    container_name: discovery-service
     ports:
       - "8761:8761"
     depends_on:
       config-service:
         condition: service_healthy
     networks:
-      - mypolicy-network
+      - mypolicy-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8761/actuator/health"]
-      interval: 10s
+      test: ["CMD", "curl", "-sf", "http://localhost:8761/actuator/health"]
+      interval: 15s
       timeout: 5s
-      retries: 10
+      retries: 3
       start_period: 40s
 
-  # Customer Service
   customer-service:
     build:
       context: ./customer-service
       dockerfile: Dockerfile
-    container_name: mypolicy-customer-service
+    container_name: customer-service
     ports:
       - "8081:8081"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
-      SPRING_APPLICATION_NAME: customer-service
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mypolicy_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
     depends_on:
       config-service:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
     networks:
-      - mypolicy-network
-    restart: on-failure
+      - mypolicy-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8081/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
-  # Policy Service
   policy-service:
     build:
       context: ./policy-service
       dockerfile: Dockerfile
-    container_name: mypolicy-policy-service
+    container_name: policy-service
     ports:
       - "8085:8085"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
-      SPRING_APPLICATION_NAME: policy-service
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mypolicy_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
     depends_on:
       config-service:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
     networks:
-      - mypolicy-network
-    restart: on-failure
+      - mypolicy-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8085/api/v1/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
-  # Data Pipeline Service (Consolidated: Ingestion + Metadata + Processing + Matching)
   data-pipeline-service:
     build:
       context: ./data-pipeline-service
       dockerfile: Dockerfile
-    container_name: mypolicy-data-pipeline-service
+    container_name: data-pipeline-service
     ports:
       - "8082:8082"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
-      SPRING_APPLICATION_NAME: data-pipeline-service
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
-      # PostgreSQL (for Metadata)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mypolicy_db
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      # MongoDB (for Ingestion)
-      SPRING_DATA_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/mypolicy?authSource=admin
     depends_on:
       config-service:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      customer-service:
-        condition: service_started
-      policy-service:
-        condition: service_started
-    volumes:
-      - ./ingestion-service/Datasets:/app/datasets
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
     networks:
-      - mypolicy-network
-    restart: on-failure
+      - mypolicy-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8082/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
-  # BFF Service (Backend for Frontend)
   bff-service:
     build:
       context: ./bff-service
       dockerfile: Dockerfile
-    container_name: mypolicy-bff-service
+    container_name: bff-service
     ports:
-      - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
-      SPRING_APPLICATION_NAME: bff-service
-      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
+      - "8090:8090"
     depends_on:
       config-service:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
       customer-service:
-        condition: service_started
+        condition: service_healthy
       policy-service:
-        condition: service_started
+        condition: service_healthy
       data-pipeline-service:
-        condition: service_started
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
+      EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
+      SPRING_PROFILES_ACTIVE: docker
     networks:
-      - mypolicy-network
-    restart: on-failure
+      - mypolicy-net
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8090/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 90s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      bff-service:
+        condition: service_healthy
+    networks:
+      - mypolicy-net
 
 networks:
-  mypolicy-network:
+  mypolicy-net:
     driver: bridge
-
-volumes:
-  postgres_data:
-    driver: local
-  mongodb_data:
-    driver: local

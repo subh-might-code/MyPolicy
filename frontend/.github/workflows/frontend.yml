@@ -1,0 +1,37 @@
+# Name shown in GitHub Actions tab
+name: Frontend CI 
+
+# When this workflow should run
+on:
+ # Run when code is pushed to these branches
+  push:
+    branches:
+      - main
+      - develop
+
+  # Run when a Pull Request targets these branches      
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+   # Define a job named "test"
+  test:
+   # Use latest Ubuntu virtual machine
+    runs-on: ubuntu-latest
+
+    steps:
+     # Step 1: Download repository code into runner
+      - uses: actions/checkout@v3
+    
+     # Step 2: Install Flutter SDK
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+     
+     # Step 3: Install project dependencies
+      - run: flutter pub get
+      
+     # Step 4: Run unit tests
+      - run: flutter test

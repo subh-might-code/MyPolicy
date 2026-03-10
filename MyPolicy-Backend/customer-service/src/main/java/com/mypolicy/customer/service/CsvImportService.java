@@ -73,6 +73,7 @@ public class CsvImportService {
 
           // Build Customer entity
           Customer customer = Customer.builder()
+              .customerId(java.util.UUID.randomUUID().toString())
               .firstName(registrationRequest.getFirstName())
               .lastName(registrationRequest.getLastName())
               .email(registrationRequest.getEmail())

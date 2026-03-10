@@ -7,23 +7,10 @@ spring:
   application:
     name: policy-service
 
-  # Centralized Database Configuration
-  datasource:
-    url: jdbc:postgresql://localhost:5432/mypolicy_db
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-
-  # JPA / Hibernate
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        # Optional: Table prefix for policy schema separation
-        # default_schema: policy
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/?appName=Cluster0}
+      database: mypolicy
 
 eureka:
   client:

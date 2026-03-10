@@ -81,8 +81,7 @@ function Show-SpecificLogs {
     Write-Host "  3. policy-service" -ForegroundColor White
     Write-Host "  4. data-pipeline-service" -ForegroundColor White
     Write-Host "  5. bff-service" -ForegroundColor White
-    Write-Host "  6. postgres" -ForegroundColor White
-    Write-Host "  7. mongodb" -ForegroundColor White
+    Write-Host "  6. mongodb" -ForegroundColor White
     
     $service = Read-Host "`nEnter service number"
     
@@ -92,8 +91,7 @@ function Show-SpecificLogs {
         "3" = "policy-service"
         "4" = "data-pipeline-service"
         "5" = "bff-service"
-        "6" = "postgres"
-        "7" = "mongodb"
+        "6" = "mongodb"
     }
     
     if ($serviceMap.ContainsKey($service)) {

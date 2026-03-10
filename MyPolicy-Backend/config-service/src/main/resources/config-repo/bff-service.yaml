@@ -3,7 +3,7 @@
 # ============================================
 
 server:
-  port: 8080
+  port: 8090
 
 spring:
   application:
@@ -17,8 +17,15 @@ feign:
     config:
       default:
         connectTimeout: 5000
-        readTimeout: 5000
+        readTimeout: 10000
         loggerLevel: BASIC
+      # Direct URLs when Eureka has no instances (development fallback)
+      customer-service:
+        url: http://localhost:8081
+      data-pipeline-service:
+        url: http://localhost:8082
+      policy-service:
+        url: http://localhost:8085
 
 # ============================================
 # Security

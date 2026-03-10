@@ -1,0 +1,121 @@
+package com.mypolicy.implementation.service;
+
+import com.mypolicy.implementation.model.CustomerDetails;
+import com.mypolicy.implementation.model.StandardizedRecord;
+import com.mypolicy.implementation.model.UnifiedPortfolioRecord;
+import com.mypolicy.implementation.util.DataMassagingUtil;
+import com.mypolicy.implementation.repository.CustomerDetailsRepository;
+import com.mypolicy.implementation.repository.UnifiedPortfolioRepository;
+import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * Identity Stitching Service. Links policy records to Customer Master using:
+ * Rule 1: Match by PAN (refCustItNum)
+ * Rule 2: Match by Mobile + DOB
+ */
+@Service
+public class StitchingService {
+
+    private final CustomerDetailsRepository customerDetailsRepository;
+    private final UnifiedPortfolioRepository unifiedPortfolioRepository;
+    private final SecurityUtils securityUtils;
+    private final AuditLogger auditLogger;
+
+    public StitchingService(CustomerDetailsRepository customerDetailsRepository, UnifiedPortfolioRepository unifiedPortfolioRepository, SecurityUtils securityUtils, AuditLogger auditLogger) {
+        this.customerDetailsRepository = customerDetailsRepository;
+        this.unifiedPortfolioRepository = unifiedPortfolioRepository;
+        this.securityUtils = securityUtils;
+        this.auditLogger = auditLogger;
+    }
+
+    public StitchingResult stitchPolicies(List<StandardizedRecord> policies) {
+        AtomicInteger matched = new AtomicInteger(0);
+        AtomicInteger unmatched = new AtomicInteger(0);
+
+        unifiedPortfolioRepository.deleteAll();
+
+        for (StandardizedRecord policy : policies) {
+            Optional<CustomerDetails> customer = findCustomer(policy);
+            if (customer.isPresent()) {
+                UnifiedPortfolioRecord record = buildUnifiedRecord(policy, customer.get());
+                unifiedPortfolioRepository.save(record);
+                matched.incrementAndGet();
+                auditLogger.logStitching(
+                        record.getMatchMethod(),
+                        policy.getPolicyId(),
+                        customer.get().getCustomerId()
+                );
+            } else {
+                unmatched.incrementAndGet();
+            }
+        }
+
+        auditLogger.logStitchingComplete(
+                policies.size(),
+                matched.get(),
+                unmatched.get()
+        );
+
+        return new StitchingResult(policies.size(), matched.get(), unmatched.get());
+    }
+
+    private Optional<CustomerDetails> findCustomer(StandardizedRecord policy) {
+        // Priority 1: Match by PAN (refCustItNum)
+        String pan = policy.getPan();
+        if (pan != null && !pan.isBlank()) {
+            Optional<CustomerDetails> byPan = customerDetailsRepository.findFirstByRefCustItNum(pan);
+            if (byPan.isPresent()) return byPan;
+        }
+
+        // Priority 2: Match by Mobile + DOB
+        Object mobile = policy.getMobile();
+        Integer dob = policy.getDob();
+        if (mobile != null && dob != null) {
+            Optional<CustomerDetails> byMobileDob = customerDetailsRepository.findFirstByRefPhoneMobileAndDatBirthCust(mobile, dob);
+            if (byMobileDob.isPresent()) return byMobileDob;
+        }
+
+        // Priority 3: Match by Email + DOB
+        String email = policy.getEmail();
+        if (email != null && !email.isBlank() && dob != null) {
+            return customerDetailsRepository.findFirstByCustEmailIDAndDatBirthCust(email, dob);
+        }
+
+        return Optional.empty();
+    }
+
+    private UnifiedPortfolioRecord buildUnifiedRecord(StandardizedRecord policy, CustomerDetails customer) {
+        String matchMethod = resolveMatchMethod(policy, customer);
+
+        UnifiedPortfolioRecord record = new UnifiedPortfolioRecord();
+        record.setCustomerId(customer.getCustomerId());
+        record.setPolicyId(policy.getPolicyId());
+        record.setInsurer(policy.getInsurer());
+        record.setPremium(policy.getPremium());
+        record.setSumAssured(policy.getSumAssured());
+        record.setStartDate(policy.getStartDate());
+        record.setPolicyEnd(policy.getPolicyEnd());
+        record.setSourceCollection(policy.getSourceCollection());
+        record.setMatchMethod(matchMethod);
+        record.setEncryptedPan(securityUtils.encrypt(policy.getPan()));
+        record.setEncryptedMobile(securityUtils.encrypt(policy.getMobile() != null ? policy.getMobile().toString() : null));
+        record.setEncryptedEmail(securityUtils.encrypt(policy.getEmail()));
+        return record;
+    }
+
+    private String resolveMatchMethod(StandardizedRecord policy, CustomerDetails customer) {
+        if (customer.getRefCustItNum() != null && customer.getRefCustItNum().equals(policy.getPan())) return "PAN_MATCH";
+        if (customer.getRefPhoneMobile() != null && policy.getMobile() != null
+                && customer.getDatBirthCust() != null && customer.getDatBirthCust().equals(policy.getDob()))
+            return "MOBILE_DOB_MATCH";
+        if (customer.getCustEmailID() != null && customer.getCustEmailID().equals(policy.getEmail())
+                && customer.getDatBirthCust() != null && customer.getDatBirthCust().equals(policy.getDob()))
+            return "EMAIL_DOB_MATCH";
+        return "UNKNOWN";
+    }
+
+    public record StitchingResult(int totalProcessed, int matched, int unmatched) {}
+}

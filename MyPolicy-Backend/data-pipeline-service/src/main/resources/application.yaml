@@ -1,80 +1,30 @@
-# ========================================
-# Data Pipeline Service Configuration
-# ========================================
-# Consolidated service containing:
-#   - Ingestion Module (Port 8082)
-#   - Metadata Module
-#   - Processing Module
-#   - Matching Engine Module
-# ========================================
-
 server:
-  port: 8081
+  port: 8082
 
 spring:
   config:
     import: optional:configserver:http://admin:config123@localhost:8888
   application:
     name: data-pipeline-service
-
-  # ========================================
-  # PostgreSQL Configuration (Metadata Module)
-  # ========================================
-  datasource:
-    url: jdbc:postgresql://localhost:5432/mypolicy_db
-    username: postgres
-    password: postgres123
-    driver-class-name: org.postgresql.Driver
-
-  # JPA/Hibernate Configuration
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-
-  # ========================================
-  # MongoDB Configuration (Ingestion Module)
-  # ========================================
   data:
     mongodb:
-      uri: mongodb://localhost:27017/ingestion_db
-      database: ingestion_db
+      uri: ${MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/?appName=Cluster0}
+      database: Backend_databases
 
-  # ========================================
-  # File Upload Configuration (Ingestion Module)
-  # ========================================
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 50MB
-      max-request-size: 50MB
+mypolicy:
+  mapping-config: classpath:mapping_config.json
+  encryption:
+    secret: ${PII_ENCRYPTION_SECRET:MyPolicy2DefaultSecretKey32Chars!!}
+  advisory:
+    life-sum-assured-multiplier: 10
+    health-coverage-min: 300000
+    auto-idv-min: 100000
+    days-nearing-expiry: 90
 
-# ========================================
-# Logging Configuration
-# ========================================
 logging:
   level:
-    root: INFO
-    com.mypolicy.pipeline: DEBUG
-    org.springframework.cloud.openfeign: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
-
-# ========================================
-# Actuator Configuration
-# ========================================
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
-  endpoint:
-    health:
-      show-details: always
+    com.mypolicy: INFO
+    com.mypolicy.audit: INFO
 
 eureka:
   client:

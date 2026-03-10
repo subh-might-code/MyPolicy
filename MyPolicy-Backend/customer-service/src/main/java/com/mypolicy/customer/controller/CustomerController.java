@@ -35,6 +35,17 @@ public class CustomerController {
     return ResponseEntity.ok(customerService.getCustomerById(customerId));
   }
 
+  /**
+   * Get customer details by Integer customerId (from customer_details collection).
+   * Used for portfolio/advisory - users who logged in via full name + PAN.
+   */
+  @GetMapping("/details/{customerId}")
+  public ResponseEntity<CustomerResponse> getCustomerDetails(@PathVariable Integer customerId) {
+    return customerService.getCustomerDetailsByIntegerId(customerId)
+        .map(ResponseEntity::ok)
+        .orElse(ResponseEntity.notFound().build());
+  }
+
   @PutMapping("/{customerId}")
   public ResponseEntity<CustomerResponse> updateCustomer(
       @PathVariable String customerId,

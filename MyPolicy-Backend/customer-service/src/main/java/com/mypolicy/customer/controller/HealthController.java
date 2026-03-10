@@ -15,8 +15,8 @@ public class HealthController {
   @Value("${server.port}")
   private String serverPort;
 
-  @Value("${spring.datasource.url}")
-  private String databaseUrl;
+  @Value("${spring.data.mongodb.uri:}")
+  private String databaseUri;
 
   @GetMapping({ "/", "/health", "/api/health" })
   public ResponseEntity<Map<String, Object>> health() {
@@ -26,12 +26,11 @@ public class HealthController {
     response.put("version", "0.0.1-SNAPSHOT");
     response.put("timestamp", LocalDateTime.now());
     response.put("port", serverPort);
-    response.put("database", extractDatabaseType(databaseUrl));
+    response.put("database", extractDatabaseType(databaseUri));
 
     Map<String, String> endpoints = new HashMap<>();
     endpoints.put("register", "POST /api/v1/customers/register");
     endpoints.put("login", "POST /api/v1/customers/login");
-    endpoints.put("h2-console", "GET /h2-console");
 
     response.put("availableEndpoints", endpoints);
 
@@ -39,16 +38,14 @@ public class HealthController {
   }
 
   private String extractDatabaseType(String url) {
-    if (url == null)
-      return "Unknown";
-    if (url.contains("postgresql"))
-      return "PostgreSQL";
+    if (url == null || url.isEmpty())
+      return "MongoDB";
+    if (url.contains("mongodb"))
+      return "MongoDB";
     if (url.contains("h2"))
       return "H2 In-Memory";
     if (url.contains("mysql"))
       return "MySQL";
-    if (url.contains("mongodb"))
-      return "MongoDB";
     return "Unknown";
   }
 }

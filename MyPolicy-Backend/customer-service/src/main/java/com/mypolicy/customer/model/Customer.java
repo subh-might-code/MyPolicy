@@ -1,10 +1,13 @@
 package com.mypolicy.customer.model;
 
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -12,77 +15,38 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-@Table(name = "customers")
+@Document(collection = "customers")
 public class Customer {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
   private String customerId;
 
-  @Column(nullable = false)
   private String firstName;
-
-  @Column(nullable = false)
   private String lastName;
 
-  @Column(nullable = false, unique = true)
+  @Indexed(unique = true)
   private String email;
 
-  @Column(nullable = false, unique = true)
+  @Indexed(unique = true)
   private String mobileNumber;
 
-  @Column(unique = true)
+  @Indexed(unique = true)
   private String panNumber;
 
-  @Column(name = "date_of_birth")
   private LocalDate dateOfBirth;
-
-  @Column(nullable = false)
   private String passwordHash;
 
-  // Permanent Address Fields (from CSV)
-  @Column(columnDefinition = "TEXT")
   private String permanentAddressLine1;
-
-  @Column(columnDefinition = "TEXT")
   private String permanentAddressLine2;
-
-  @Column(columnDefinition = "TEXT")
   private String permanentAddressLine3;
-
-  @Column
   private String permanentAddressCity;
-
-  @Column
   private String permanentAddressZip;
-
-  @Column
   private String customerAddressZip;
-
-  // Legacy field - kept for backward compatibility
-  @Column(columnDefinition = "TEXT")
   private String address;
 
-  @Column(nullable = false)
-  @Enumerated(EnumType.STRING)
   @Builder.Default
   private CustomerStatus status = CustomerStatus.ACTIVE;
 
-  @Column(updatable = false)
   private LocalDateTime createdAt;
-
-  @Column
   private LocalDateTime updatedAt;
-
-  @PrePersist
-  protected void onCreate() {
-    createdAt = LocalDateTime.now();
-    updatedAt = LocalDateTime.now();
-  }
-
-  @PreUpdate
-  protected void onUpdate() {
-    updatedAt = LocalDateTime.now();
-  }
 }

@@ -13,10 +13,10 @@ DB_NAME = "Backend_databases"
 DATASETS = pathlib.Path(__file__).parent.parent / "Datasets"
 
 CONFIGS = [
-    ("Customer_data.csv", "customer_details", {"customerId": int, "refPhoneMobile": lambda x: int(x) if x and x.isdigit() else x, "datBirthCust": int}),
-    ("Auto_Insurance.csv", "auto_insurance", {"DOB": int, "Mobile": int, "PolicyStartDate": int, "PolicyEndDate": int, "IDV": int, "AnnualPremium": int}),
-    ("Life_Insurance.csv", "life_insurance", {"DOB": int, "Mobile": int, "PolicyStart": int, "PolicyEnd": int, "SumAssured": int, "AnnualPrem": int, "PolicyTerm": int}),
-    ("Health_Insurance.csv", "health_insurance", {"DOB": int, "Mobile": int, "Coverage Amount": int, "Annual Premium": int, "Policy Start Date": int, "Policy End Date": int}),
+    ("Customer_data_sample.csv", "customer_details", {"customerId": int, "refPhoneMobile": lambda x: int(x) if x and x.isdigit() else x, "datBirthCust": int}),
+    ("Auto_Insurance_sample.csv", "auto_insurance", {"DOB": int, "Mobile": int, "PolicyStartDate": int, "PolicyEndDate": int, "IDV": int, "AnnualPremium": int}),
+    ("Life_Insurance_sample.csv", "life_insurance", {"DOB": int, "Mobile": int, "PolicyStart": int, "PolicyEnd": int, "SumAssured": int, "AnnualPrem": int, "PolicyTerm": int}),
+    ("Health_Insurance_sample.csv", "health_insurance", {"DOB": int, "Mobile": int, "Coverage Amount": int, "Annual Premium": int, "Policy Start Date": int, "Policy End Date": int}),
 ]
 
 

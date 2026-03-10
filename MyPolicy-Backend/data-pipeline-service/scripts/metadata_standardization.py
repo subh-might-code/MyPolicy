@@ -32,24 +32,24 @@ MAPPING_CONFIG = {
         "dob": "DOB",
         "insurer": "Insurer",
     },
-    "life_insurance": {
-        "policy_id": "PolicyNum",
-        "premium": "AnnualPrem",
-        "start_date": "PolicyStart",
-        "policy_end": "PolicyEnd",
-        "sum_assured": "SumAssured",
-        "pan": "PAN",
-        "mobile": "Mobile",
-        "email": "Email",
-        "dob": "DOB",
-        "insurer": "Insurer",
-    },
     "health_insurance": {
         "policy_id": "Policy Number",
         "premium": "Annual Premium",
         "start_date": "Policy Start Date",
         "policy_end": "Policy End Date",
         "sum_assured": "Coverage Amount",
+        "pan": "PAN",
+        "mobile": "Mobile",
+        "email": "Email",
+        "dob": "DOB",
+        "insurer": "Insurer",
+    },
+    "life_insurance": {
+        "policy_id": "PolicyNum",
+        "premium": "AnnualPrem",
+        "start_date": "PolicyStart",
+        "policy_end": "PolicyEnd",
+        "sum_assured": "SumAssured",
         "pan": "PAN",
         "mobile": "Mobile",
         "email": "Email",
@@ -73,23 +73,28 @@ DB_NAME = "Backend_databases"
 
 
 def get_standardized_data(collection_name: str, db) -> list:
-    """Transform raw collection data to standardized format per mapping_config."""
-    mapping = MAPPING_CONFIG.get(collection_name, {})
+    """
+    Reads from MongoDB and applies the Metadata Mapping.
+    Maps varied insurer field names to standard keys for unified view.
+    """
+    collection = db[collection_name]
+    mapping = MAPPING_CONFIG.get(collection_name)
+
     if not mapping:
-        print(f"  No mapping config for {collection_name}")
         return []
 
-    coll = db[collection_name]
-    docs = list(coll.find({}))
-    standardized = []
-    
-    for doc in docs:
-        std_doc = {}
-        for std_key, source_key in mapping.items():
-            std_doc[std_key] = doc.get(source_key)
-        standardized.append(std_doc)
-    
-    return standardized
+    standardized_records = []
+
+    for doc in collection.find():
+        standard_doc = {
+            "source_collection": collection_name,
+            "original_id": str(doc["_id"]),
+        }
+        for standard_key, source_key in mapping.items():
+            standard_doc[standard_key] = doc.get(source_key)
+        standardized_records.append(standard_doc)
+
+    return standardized_records
 
 
 def main():

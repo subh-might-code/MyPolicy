@@ -10,25 +10,12 @@ spring:
     name: policy-service
 
   # ============================================
-  # PostgreSQL Database Configuration
+  # MongoDB Database Configuration
   # ============================================
-  datasource:
-    url: jdbc:postgresql://localhost:5432/mypolicy_db
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-
-  # ============================================
-  # JPA/Hibernate Configuration
-  # ============================================
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+  data:
+    mongodb:
+      uri: ${SPRING_DATA_MONGODB_URI:mongodb+srv://praticks2003_db_user:cPZqSJF3LPPsHSEv@cluster0.enwyvnr.mongodb.net/mypolicy?retryWrites=true&w=majority}
+      database: mypolicy
 
 # ============================================
 # Logging
@@ -36,7 +23,6 @@ spring:
 logging:
   level:
     com.mypolicy.policy: INFO
-    org.hibernate.SQL: DEBUG
 
 # ============================================
 # Actuator

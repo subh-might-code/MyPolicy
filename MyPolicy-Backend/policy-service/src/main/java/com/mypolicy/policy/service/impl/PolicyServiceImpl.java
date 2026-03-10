@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +29,7 @@ public class PolicyServiceImpl implements PolicyService {
         });
 
     Policy policy = Policy.builder()
+        .id(java.util.UUID.randomUUID().toString())
         .customerId(request.getCustomerId())
         .insurerId(request.getInsurerId())
         .policyNumber(request.getPolicyNumber())
