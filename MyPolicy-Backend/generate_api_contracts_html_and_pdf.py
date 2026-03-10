@@ -1,14 +1,15 @@
 from pathlib import Path
 
 import markdown
-from weasyprint import HTML, CSS
+import subprocess
+import sys
 
 
 def main() -> None:
   root = Path(__file__).parent
   md_path = root / "API_CONTRACTS.md"
-  html_path = root / "API_CONTRACTS.html"
-  pdf_path = root / "API_CONTRACTS_styled.pdf"
+  html_path = root / "API_CONTRACTS_styled.html"
+  pdf_path = root / "API_CONTRACTS.pdf"
 
   text = md_path.read_text(encoding="utf-8")
 
@@ -120,9 +121,40 @@ def main() -> None:
 
   html_path.write_text(html_full, encoding="utf-8")
 
-  HTML(string=html_full).write_pdf(str(pdf_path), stylesheets=[CSS(string="")])
+  # Convert HTML -> PDF using a local Chromium-based browser.
+  # We use Chrome/Edge headless printing to avoid native library dependencies.
+  chrome_candidates = [
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+  ]
+
+  browser = next((p for p in chrome_candidates if Path(p).exists()), None)
+  if not browser:
+    raise RuntimeError(
+      "No Chrome/Edge executable found. Install Google Chrome or Microsoft Edge, "
+      "or add a PDF generator to the toolchain."
+    )
+
+  file_url = html_path.resolve().as_uri()
+  pdf_out = str(pdf_path.resolve())
+
+  cmd = [
+    browser,
+    "--headless=new",
+    "--disable-gpu",
+    f"--print-to-pdf={pdf_out}",
+    file_url,
+  ]
+
+  result = subprocess.run(cmd, capture_output=True, text=True)
+  if result.returncode != 0:
+    sys.stderr.write(result.stdout + "\n" + result.stderr + "\n")
+    raise RuntimeError(f"PDF generation failed (exit {result.returncode}).")
+
   print(f"Generated HTML: {html_path}")
-  print(f"Generated styled PDF: {pdf_path}")
+  print(f"Generated PDF:  {pdf_path}")
 
 
 if __name__ == "__main__":

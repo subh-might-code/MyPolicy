@@ -1,27 +1,200 @@
-<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'/><title>MyPolicy – API Contracts</title><style>body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11pt; color: #1a202c; line-height: 1.4; margin: 24px; } h1,h2,h3,h4 { font-weight: 700; color: #0f4c81; margin-top: 18px; margin-bottom: 8px; } h1 { font-size: 22pt; border-bottom: 2px solid #0f4c81; padding-bottom: 4px; } h2 { font-size: 16pt; } h3 { font-size: 13pt; } p { margin: 4px 0; } ul,ol { margin: 4px 0 4px 22px; } code,pre { font-family: 'Fira Code','Source Code Pro',Menlo,Consolas,monospace; font-size: 9pt; } pre { background:#f7fafc; border-radius:4px; padding:6px 8px; border:1px solid #e2e8f0; overflow-x:auto; margin:6px 0 8px 0; } blockquote { border-left:3px solid #0f4c81; padding-left:10px; color:#4a5568; margin:6px 0; }</style></head><body><h1 id="mypolicy-api-contracts-backend-frontend-usage">MyPolicy – API Contracts (Backend &amp; Frontend Usage)</h1>
-<blockquote>
-<p>This document describes the main HTTP APIs used in the MyPolicy project – both
-the public APIs exposed to the frontend and the internal service‑to‑service
-contracts.<br />
-All paths are relative to the service base URL (or host/port in Docker/Dev).</p>
-</blockquote>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>MyPolicy – API Contracts</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 20mm 18mm 20mm 18mm;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 11pt;
+      color: #1a202c;
+      line-height: 1.4;
+    }
+    h1, h2, h3, h4 {
+      font-weight: 700;
+      color: #0f4c81;
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 20pt;
+      border-bottom: 2px solid #0f4c81;
+      padding-bottom: 4px;
+    }
+    h2 {
+      font-size: 16pt;
+    }
+    h3 {
+      font-size: 13pt;
+    }
+    p {
+      margin: 4px 0;
+    }
+    ul, ol {
+      margin: 4px 0 4px 22px;
+    }
+    code, pre {
+      font-family: "Fira Code", "Source Code Pro", Menlo, Consolas, monospace;
+      font-size: 9pt;
+    }
+    pre {
+      background: #f7fafc;
+      border-radius: 4px;
+      padding: 6px 8px;
+      border: 1px solid #e2e8f0;
+      overflow-x: auto;
+      margin: 6px 0 8px 0;
+    }
+    blockquote {
+      border-left: 3px solid #0f4c81;
+      padding-left: 10px;
+      color: #4a5568;
+      margin: 6px 0;
+    }
+    table {
+      border-collapse: collapse;
+      margin: 8px 0;
+      width: 100%;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 4px 6px;
+      text-align: left;
+    }
+    th {
+      background: #edf2f7;
+      font-weight: 600;
+    }
+    header {
+      text-align: right;
+      font-size: 9pt;
+      color: #718096;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 8px;
+      padding-bottom: 2px;
+    }
+    footer {
+      position: fixed;
+      bottom: 6mm;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 8pt;
+      color: #a0aec0;
+    }
+  </style>
+</head>
+<body>
+  <header>MyPolicy – API Contracts</header>
+  <h1 id="mypolicy-api-contracts">MyPolicy – API Contracts</h1>
+<p>This document provides <strong>full API contracts</strong> for the MyPolicy project:</p>
+<ul>
+<li><strong>External (QA / frontend / automation)</strong>: BFF APIs (recommended entrypoint)</li>
+<li><strong>Internal (service-to-service)</strong>: customer-service, policy-service, data-pipeline-service</li>
+<li><strong>Platform</strong>: config-service (Spring Cloud Config), discovery-service (Eureka)</li>
+</ul>
+<p>All paths below are relative to the service base URL.</p>
 <hr />
-<h2 id="1-bff-service-bff-service">1. BFF Service (<code>bff-service</code>)</h2>
-<p>The BFF is the primary entrypoint for the frontend.<br />
-Port: <strong>8090</strong> (dev), behind Docker: <code>bff-service:8090</code>.</p>
+<h2 id="environments-base-urls">Environments &amp; Base URLs</h2>
+<h3 id="local-maven">Local (Maven)</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Base URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BFF</td>
+<td><code>http://localhost:8090</code></td>
+</tr>
+<tr>
+<td>Customer</td>
+<td><code>http://localhost:8081</code></td>
+</tr>
+<tr>
+<td>Policy</td>
+<td><code>http://localhost:8085</code></td>
+</tr>
+<tr>
+<td>Data-pipeline</td>
+<td><code>http://localhost:8082</code></td>
+</tr>
+<tr>
+<td>Eureka</td>
+<td><code>http://localhost:8761</code></td>
+</tr>
+<tr>
+<td>Config</td>
+<td><code>http://localhost:8888</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="docker-compose-host">Docker Compose (host)</h3>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Base URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frontend (nginx / Flutter web)</td>
+<td><code>http://localhost:8080</code></td>
+</tr>
+<tr>
+<td>BFF</td>
+<td><code>http://localhost:8090</code></td>
+</tr>
+<tr>
+<td>Customer</td>
+<td><code>http://localhost:8081</code></td>
+</tr>
+<tr>
+<td>Policy</td>
+<td><code>http://localhost:8085</code></td>
+</tr>
+<tr>
+<td>Data-pipeline</td>
+<td><code>http://localhost:8082</code></td>
+</tr>
+<tr>
+<td>Eureka</td>
+<td><code>http://localhost:8761</code></td>
+</tr>
+<tr>
+<td>Config (host-mapped)</td>
+<td><code>http://localhost:8889</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="authentication">Authentication</h2>
+<h3 id="jwt-bearer">JWT (Bearer)</h3>
+<p>After login, the API returns a <code>token</code>. For protected endpoints, send:</p>
+<pre><code class="language-text">Authorization: Bearer &lt;token&gt;
+</code></pre>
+<hr />
+<h2 id="1-bff-service-bff-service-recommended-for-qa-automation">1. BFF Service (<code>bff-service</code>) — Recommended for QA automation</h2>
+<p>The BFF is the single entrypoint for the frontend and for QA automation. It orchestrates calls to downstream services.</p>
 <h3 id="11-post-apibffauthlogin">1.1 <code>POST /api/bff/auth/login</code></h3>
-<p><strong>Purpose</strong>: Authenticate a customer using <code>full name + PAN</code> and return a token and customer summary.</p>
+<p><strong>Purpose</strong>: Login using <code>Full Name + PAN</code>, returning JWT token and customer summary.</p>
 <p><strong>Request (JSON)</strong></p>
 <pre><code class="language-json">{
   &quot;customerIdOrUserId&quot;: &quot;Amit Ramesh Kulkarni&quot;,
   &quot;password&quot;: &quot;AKCPK1123L&quot;
 }
 </code></pre>
-<p><strong>Response <code>200 OK</code></strong></p>
+<p><strong>Response <code>200 OK</code> (shape)</strong></p>
 <pre><code class="language-json">{
   &quot;token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
-  &quot;customerId&quot;: &quot;901120934&quot;,
-  &quot;fullName&quot;: &quot;Amit Ramesh Kulkarni&quot;,
   &quot;customer&quot;: {
     &quot;customerId&quot;: 901120934,
     &quot;fullName&quot;: &quot;Amit Ramesh Kulkarni&quot;,
@@ -30,29 +203,23 @@ Port: <strong>8090</strong> (dev), behind Docker: <code>bff-service:8090</code>.
   }
 }
 </code></pre>
-<p><strong>Error <code>401 / 400</code></strong></p>
-<pre><code class="language-json">{
-  &quot;timestamp&quot;: &quot;2026-03-09T14:01:23.456+05:30&quot;,
-  &quot;status&quot;: 401,
-  &quot;error&quot;: &quot;Unauthorized&quot;,
-  &quot;message&quot;: &quot;Invalid credentials&quot;,
-  &quot;path&quot;: &quot;/api/bff/auth/login&quot;
-}
-</code></pre>
-<p>Used by <strong>Flutter</strong>: <code>ApiClient.login(...)</code>.</p>
+<p><strong>Errors</strong></p>
+<ul>
+<li><code>400 Bad Request</code>: validation errors from downstream services</li>
+<li><code>401 Unauthorized</code>: invalid credentials</li>
+</ul>
 <hr />
 <h3 id="12-get-apibffportfoliocustomerid">1.2 <code>GET /api/bff/portfolio/{customerId}</code></h3>
-<p><strong>Purpose</strong>: Get unified portfolio for a given customer:</p>
+<p><strong>Purpose</strong>: Unified portfolio for the given customer:</p>
 <ul>
-<li>Customer details from <code>customer-service</code></li>
-<li>Unified policies from <code>data-pipeline-service</code></li>
-<li>Aggregated totals (premium, coverage)</li>
+<li>customer details via <code>customer-service</code></li>
+<li>policies via <code>data-pipeline-service</code> unified portfolio</li>
+<li>totals calculated by BFF</li>
 </ul>
-<p><code>customerId</code> is the numeric ID from <code>Customer_data.csv</code> / <code>customer_details</code>.</p>
-<p><strong>Example URL</strong></p>
-<pre><code class="language-text">GET /api/bff/portfolio/901120934
+<p><strong>Headers</strong></p>
+<pre><code class="language-text">Authorization: Bearer &lt;token&gt;
 </code></pre>
-<p><strong>Response <code>200 OK</code></strong></p>
+<p><strong>Response <code>200 OK</code> (shape)</strong></p>
 <pre><code class="language-json">{
   &quot;customer&quot;: {
     &quot;customerId&quot;: 901120934,
@@ -64,28 +231,13 @@ Port: <strong>8090</strong> (dev), behind Docker: <code>bff-service:8090</code>.
   &quot;policies&quot;: [
     {
       &quot;id&quot;: &quot;AUPOL-S001&quot;,
-      &quot;customerId&quot;: &quot;901120934&quot;,
-      &quot;insurerId&quot;: &quot;HDFC Life&quot;,
       &quot;policyNumber&quot;: &quot;AUPOL-S001&quot;,
       &quot;policyType&quot;: &quot;auto_insurance&quot;,
-      &quot;planName&quot;: null,
+      &quot;insurerId&quot;: &quot;HDFC Life&quot;,
       &quot;premiumAmount&quot;: 18500.0,
       &quot;sumAssured&quot;: 500000.0,
       &quot;startDate&quot;: &quot;2024-01-01&quot;,
       &quot;endDate&quot;: &quot;2025-12-31&quot;,
-      &quot;status&quot;: &quot;ACTIVE&quot;
-    },
-    {
-      &quot;id&quot;: &quot;LIPOL-S001&quot;,
-      &quot;customerId&quot;: &quot;901120934&quot;,
-      &quot;insurerId&quot;: &quot;SBI Life&quot;,
-      &quot;policyNumber&quot;: &quot;LIPOL-S001&quot;,
-      &quot;policyType&quot;: &quot;life_insurance&quot;,
-      &quot;planName&quot;: null,
-      &quot;premiumAmount&quot;: 12500.0,
-      &quot;sumAssured&quot;: 1000000.0,
-      &quot;startDate&quot;: &quot;2023-01-01&quot;,
-      &quot;endDate&quot;: &quot;2042-12-31&quot;,
       &quot;status&quot;: &quot;ACTIVE&quot;
     }
   ],
@@ -94,274 +246,130 @@ Port: <strong>8090</strong> (dev), behind Docker: <code>bff-service:8090</code>.
   &quot;totalCoverage&quot;: 2500000.0
 }
 </code></pre>
-<p>Used by <strong>Flutter</strong>:</p>
+<hr />
+<h3 id="13-get-apibffadvisorycustomerid">1.3 <code>GET /api/bff/advisory/{customerId}</code></h3>
+<p><strong>Purpose</strong>: Coverage advisory/gap analysis proxied from <code>data-pipeline-service</code>.</p>
+<p><strong>Headers</strong></p>
+<pre><code class="language-text">Authorization: Bearer &lt;token&gt;
+</code></pre>
+<hr />
+<h3 id="14-get-apibffinsightscustomerid">1.4 <code>GET /api/bff/insights/{customerId}</code></h3>
+<p><strong>Purpose</strong>: Coverage insights &amp; recommendations computed in BFF.</p>
+<p><strong>Headers</strong></p>
+<pre><code class="language-text">Authorization: Bearer &lt;token&gt;
+</code></pre>
+<hr />
+<h3 id="15-upload-apis-bff-ingestion">1.5 Upload APIs (BFF → ingestion)</h3>
+<h4 id="151-post-apibffupload">1.5.1 <code>POST /api/bff/upload</code></h4>
+<p><strong>Purpose</strong>: Upload an insurer file for ingestion.</p>
+<p><strong>Consumes</strong>: <code>multipart/form-data</code></p>
+<p><strong>Form fields</strong></p>
 <ul>
-<li><code>DashboardScreen</code> (list of policies + top summary cards).</li>
-<li><code>AnalyticsDashboard</code> (donut charts and KPIs).</li>
-<li><code>PolicyDetailScreen</code> (detail view for a selected policy).</li>
+<li><code>file</code>: binary</li>
+<li><code>uploadedBy</code>: string</li>
+<li><code>insurerId</code>: string</li>
 </ul>
+<h4 id="152-get-apibffuploadstatusjobid">1.5.2 <code>GET /api/bff/upload/status/{jobId}</code></h4>
+<p><strong>Purpose</strong>: Get ingestion job status.</p>
 <hr />
-<h3 id="13-get-apibffadvisorycustomerid-used-internally-future-ui">1.3 <code>GET /api/bff/advisory/{customerId}</code> (used internally / future UI)</h3>
-<p><strong>Purpose</strong>: Fetch coverage advisory &amp; gap analysis from <code>data-pipeline-service</code>.</p>
-<p><strong>Example URL</strong></p>
-<pre><code class="language-text">GET /api/bff/advisory/901120934
-</code></pre>
-<p><strong>Response <code>200 OK</code> (shape simplified)</strong></p>
-<pre><code class="language-json">{
-  &quot;customerId&quot;: 901120934,
-  &quot;overallScore&quot;: {
-    &quot;score&quot;: 72,
-    &quot;rating&quot;: &quot;GOOD&quot;
-  },
-  &quot;gaps&quot;: [
-    {
-      &quot;policyType&quot;: &quot;TERM_LIFE&quot;,
-      &quot;gapAmount&quot;: 5000000.0,
-      &quot;severity&quot;: &quot;HIGH&quot;,
-      &quot;advisory&quot;: &quot;Your current life cover is below recommended levels.&quot;
-    }
-  ],
-  &quot;recommendations&quot;: [
-    {
-      &quot;title&quot;: &quot;Increase Life Coverage&quot;,
-      &quot;priority&quot;: &quot;CRITICAL&quot;,
-      &quot;suggestedCoverage&quot;: 10000000.0,
-      &quot;estimatedPremium&quot;: 55000.0
-    }
-  ]
-}
-</code></pre>
-<p>This is currently consumed by the BFF service and is ready for future frontend “Insights” pages.</p>
-<hr />
-<h3 id="14-get-apibffhealth">1.4 <code>GET /api/bff/health</code></h3>
-<p><strong>Purpose</strong>: Simple health endpoint for BFF.</p>
-<p><strong>Response</strong></p>
-<pre><code class="language-json">{ &quot;status&quot;: &quot;UP&quot; }
-</code></pre>
-<p>Used by <code>verify-services.ps1</code>.</p>
+<h3 id="16-health-sanity-endpoints">1.6 Health / sanity endpoints</h3>
+<ul>
+<li><code>GET /api/bff/health</code> → JSON status object</li>
+<li><code>GET /api/bff/ping</code> → <code>"pong"</code></li>
+<li><code>GET /actuator/health</code> → Spring actuator health</li>
+</ul>
 <hr />
 <h2 id="2-data-pipeline-service-data-pipeline-service">2. Data Pipeline Service (<code>data-pipeline-service</code>)</h2>
-<p>Port: <strong>8082</strong>.</p>
-<h3 id="21-get-apiportfoliocustomerid">2.1 <code>GET /api/portfolio/{customerId}</code></h3>
-<p><strong>Purpose</strong>: Return unified portfolio records from <code>unified_portfolio</code> for a given customer.</p>
-<p><strong>Example</strong></p>
-<pre><code class="language-text">GET /api/portfolio/901120934
-</code></pre>
-<p><strong>Response <code>200 OK</code></strong></p>
-<pre><code class="language-json">{
-  &quot;customerId&quot;: 901120934,
-  &quot;policies&quot;: [
-    {
-      &quot;policyId&quot;: &quot;AUPOL-S001&quot;,
-      &quot;insurer&quot;: &quot;HDFC Life&quot;,
-      &quot;sourceCollection&quot;: &quot;auto_insurance&quot;,
-      &quot;premium&quot;: 18500.0,
-      &quot;sumAssured&quot;: 500000,
-      &quot;startDate&quot;: 20240101,
-      &quot;policyEnd&quot;: 20251231,
-      &quot;matchMethod&quot;: &quot;PAN_MATCH&quot;
-    },
-    {
-      &quot;policyId&quot;: &quot;LIPOL-S001&quot;,
-      &quot;insurer&quot;: &quot;SBI Life&quot;,
-      &quot;sourceCollection&quot;: &quot;life_insurance&quot;,
-      &quot;premium&quot;: 12500.0,
-      &quot;sumAssured&quot;: 1000000,
-      &quot;startDate&quot;: 20230101,
-      &quot;policyEnd&quot;: 20421231,
-      &quot;matchMethod&quot;: &quot;PAN_MATCH&quot;
-    }
-  ],
-  &quot;totalPolicies&quot;: 4
-}
-</code></pre>
-<p>Used by <strong>BFF</strong> via <code>DataPipelineClient.getPortfolio(...)</code>.</p>
-<hr />
-<h3 id="22-get-apiadvisorycustomerid">2.2 <code>GET /api/advisory/{customerId}</code></h3>
-<p><strong>Purpose</strong>: Compute coverage advisory and gaps for a given customer’s unified portfolio.</p>
-<p><strong>Example</strong></p>
-<pre><code class="language-text">GET /api/advisory/901120934
-</code></pre>
-<p><strong>Response <code>200 OK</code> (shape simplified)</strong></p>
-<pre><code class="language-json">{
-  &quot;customerId&quot;: 901120934,
-  &quot;lifeCoverage&quot;: {
-    &quot;current&quot;: 5000000.0,
-    &quot;recommended&quot;: 10000000.0,
-    &quot;gap&quot;: 5000000.0,
-    &quot;severity&quot;: &quot;HIGH&quot;
-  },
-  &quot;healthCoverage&quot;: {
-    &quot;current&quot;: 400000.0,
-    &quot;recommended&quot;: 3000000.0,
-    &quot;gap&quot;: 2600000.0,
-    &quot;severity&quot;: &quot;HIGH&quot;
-  },
-  &quot;autoCoverage&quot;: {
-    &quot;current&quot;: 450000.0,
-    &quot;recommended&quot;: 1000000.0,
-    &quot;gap&quot;: 550000.0,
-    &quot;severity&quot;: &quot;MEDIUM&quot;
-  },
-  &quot;overallScore&quot;: {
-    &quot;score&quot;: 72,
-    &quot;rating&quot;: &quot;GOOD&quot;
-  },
-  &quot;notes&quot;: [
-    &quot;Increase term life cover to at least 10x annual income.&quot;,
-    &quot;Consider higher health coverage for the family.&quot;
-  ]
-}
-</code></pre>
-<p>Used by <strong>BFF</strong> via <code>DataPipelineClient.getAdvisory(...)</code>.</p>
+<p>Port: <strong>8082</strong></p>
+<h3 id="21-portfolio-apis">2.1 Portfolio APIs</h3>
+<ul>
+<li><code>GET /api/portfolio/{customerId}</code></li>
+<li><code>GET /api/advisory/{customerId}</code></li>
+</ul>
+<h3 id="22-pipeline-execution-apis">2.2 Pipeline execution APIs</h3>
+<ul>
+<li><code>POST /api/pipeline/run</code></li>
+<li><code>POST /api/pipeline/upload</code> (multipart <code>file</code>, <code>collectionName</code>)</li>
+</ul>
+<h3 id="23-insurer-portal-html">2.3 Insurer portal (HTML)</h3>
+<ul>
+<li><code>GET /insurer-portal</code></li>
+</ul>
+<h3 id="24-health">2.4 Health</h3>
+<ul>
+<li><code>GET /actuator/health</code></li>
+</ul>
 <hr />
 <h2 id="3-customer-service-customer-service">3. Customer Service (<code>customer-service</code>)</h2>
-<p>Port: <strong>8081</strong>.</p>
-<h3 id="31-get-apiv1customersdetailscustomerid">3.1 <code>GET /api/v1/customers/details/{customerId}</code></h3>
-<p><strong>Purpose</strong>: Fetch customer details by numeric <code>customerId</code>.</p>
-<p><strong>Example</strong></p>
-<pre><code class="language-text">GET /api/v1/customers/details/901120934
-</code></pre>
-<p><strong>Response <code>200 OK</code></strong></p>
+<p>Port: <strong>8081</strong></p>
+<h3 id="31-customer-apis">3.1 Customer APIs</h3>
+<ul>
+<li><code>POST /api/v1/customers/register</code></li>
+<li><code>POST /api/v1/customers/login</code></li>
+<li><code>GET /api/v1/customers/{customerId}</code></li>
+<li><code>GET /api/v1/customers/details/{customerId}</code></li>
+<li><code>PUT /api/v1/customers/{customerId}</code></li>
+<li><code>GET /api/v1/customers/search/mobile/{mobile}</code></li>
+<li><code>GET /api/v1/customers/search/email/{email}</code></li>
+<li><code>GET /api/v1/customers/search/pan/{pan}</code></li>
+</ul>
+<h3 id="32-login-request-json">3.2 Login request (JSON)</h3>
 <pre><code class="language-json">{
-  &quot;customerId&quot;: 901120934,
-  &quot;fullName&quot;: &quot;Amit Ramesh Kulkarni&quot;,
-  &quot;mobile&quot;: &quot;919876543210&quot;,
-  &quot;email&quot;: &quot;amit.kulkarni@gmail.com&quot;,
-  &quot;pan&quot;: &quot;AKCPK1123L&quot;,
-  &quot;status&quot;: &quot;ACTIVE&quot;
+  &quot;customerIdOrUserId&quot;: &quot;Amit Ramesh Kulkarni&quot;,
+  &quot;password&quot;: &quot;AKCPK1123L&quot;
 }
 </code></pre>
-<p>Used by <strong>BFF</strong> via <code>CustomerClient.getCustomerDetails(...)</code>.</p>
-<hr />
-<h3 id="32-post-apiv1customerslogin-internal">3.2 <code>POST /api/v1/customers/login</code> (internal)</h3>
-<blockquote>
-<p>The BFF currently performs login logic itself using <code>full name + PAN</code>.<br />
-Customer-service also supports email+password style login for future extensions.</p>
-</blockquote>
-<p><strong>Request</strong></p>
-<pre><code class="language-json">{
-  &quot;customerIdOrEmail&quot;: &quot;amit.kulkarni@gmail.com&quot;,
-  &quot;password&quot;: &quot;SomePassword123&quot;
-}
-</code></pre>
-<p><strong>Response <code>200 OK</code></strong></p>
-<pre><code class="language-json">{
-  &quot;token&quot;: &quot;eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...&quot;,
-  &quot;customer&quot;: {
-    &quot;customerId&quot;: 901120934,
-    &quot;fullName&quot;: &quot;Amit Ramesh Kulkarni&quot;,
-    &quot;email&quot;: &quot;amit.kulkarni@gmail.com&quot;
-  }
-}
-</code></pre>
-<hr />
-<h3 id="33-get-apiv1health">3.3 <code>GET /api/v1/health</code></h3>
-<p>Simple health endpoint used by <code>verify-services.ps1</code>.</p>
-<p><strong>Response</strong></p>
-<pre><code class="language-json">{ &quot;status&quot;: &quot;UP&quot;, &quot;service&quot;: &quot;customer-service&quot; }
-</code></pre>
+<h3 id="33-health-ping">3.3 Health / ping</h3>
+<ul>
+<li><code>GET /api/v1/health</code></li>
+<li><code>GET /api/v1/ping</code></li>
+<li><code>GET /</code> or <code>GET /health</code> or <code>GET /api/health</code></li>
+<li><code>GET /actuator/health</code> (may be secured)</li>
+</ul>
 <hr />
 <h2 id="4-policy-service-policy-service">4. Policy Service (<code>policy-service</code>)</h2>
-<p>Port: <strong>8085</strong>.</p>
-<h3 id="41-get-apiv1policiespolicyid-shape">4.1 <code>GET /api/v1/policies/{policyId}</code> (shape)</h3>
-<p>Used for CRUD on raw policy storage.</p>
-<p><strong>Example</strong></p>
-<pre><code class="language-text">GET /api/v1/policies/AUPOL-S001
-</code></pre>
-<p><strong>Response <code>200 OK</code> (simplified)</strong></p>
-<pre><code class="language-json">{
-  &quot;policyId&quot;: &quot;AUPOL-S001&quot;,
-  &quot;customerId&quot;: 901120934,
-  &quot;insurerId&quot;: &quot;HDFC Life&quot;,
-  &quot;policyNumber&quot;: &quot;AUPOL-S001&quot;,
-  &quot;policyType&quot;: &quot;auto_insurance&quot;,
-  &quot;premiumAmount&quot;: 18500.0,
-  &quot;sumAssured&quot;: 500000.0,
-  &quot;status&quot;: &quot;ACTIVE&quot;
-}
-</code></pre>
-<h3 id="42-get-apiv1health">4.2 <code>GET /api/v1/health</code></h3>
-<p>Health endpoint used by scripts.</p>
+<p>Port: <strong>8085</strong></p>
+<h3 id="41-policy-apis">4.1 Policy APIs</h3>
+<ul>
+<li><code>POST /api/v1/policies</code></li>
+<li><code>GET /api/v1/policies</code></li>
+<li><code>GET /api/v1/policies/{id}</code></li>
+<li><code>GET /api/v1/policies/customer/{customerId}</code></li>
+<li><code>PATCH /api/v1/policies/{id}/status?status=...</code></li>
+<li><code>DELETE /api/v1/policies/{id}</code></li>
+</ul>
+<h3 id="42-health-ping">4.2 Health / ping</h3>
+<ul>
+<li><code>GET /api/v1/health</code></li>
+<li><code>GET /api/v1/ping</code></li>
+</ul>
 <hr />
 <h2 id="5-config-service-config-service">5. Config Service (<code>config-service</code>)</h2>
-<p>Port: <strong>8888</strong> (host‑mapped to 8889 in Docker).</p>
-<h3 id="51-get-app-nameprofile-spring-cloud-config">5.1 <code>GET /{app-name}/{profile}</code> – Spring Cloud Config</h3>
-<p><strong>Example</strong></p>
-<pre><code class="language-text">GET /customer-service/default
-</code></pre>
-<p><strong>Response</strong> – standard Spring Cloud Config JSON containing property sources.</p>
-<h3 id="52-get-actuatorhealth">5.2 <code>GET /actuator/health</code></h3>
-<p>Used by Docker health checks and <code>verify-services.ps1</code>.</p>
+<p>Container port <strong>8888</strong> (host-mapped to <strong>8889</strong> in Docker)</p>
+<ul>
+<li><code>GET /{app-name}/{profile}</code> (Spring Cloud Config)</li>
+<li>Example: <code>GET /customer-service/default</code></li>
+<li><code>GET /actuator/health</code></li>
+</ul>
 <hr />
 <h2 id="6-discovery-service-discovery-service">6. Discovery Service (<code>discovery-service</code>)</h2>
-<p>Port: <strong>8761</strong>.</p>
-<h3 id="61-get">6.1 <code>GET /</code></h3>
-<p>Eureka dashboard (HTML UI to see registered instances).</p>
-<h3 id="62-get-actuatorhealth">6.2 <code>GET /actuator/health</code></h3>
-<p>Health endpoint used by tooling.</p>
-<hr />
-<h2 id="7-frontend-flutter-web-api-usage-summary">7. Frontend (Flutter Web) – API Usage Summary</h2>
-<p>The Flutter app (web build) <strong>only calls the BFF</strong>, never the individual microservices directly.</p>
-<h3 id="71-login-flow">7.1 Login Flow</h3>
+<p>Port: <strong>8761</strong></p>
 <ul>
-<li><strong>Screen</strong>: <code>LoginScreen</code></li>
-<li><strong>Method</strong>: <code>ApiClient.login(userId, password)</code></li>
-<li><strong>Backend API</strong>: <code>POST /api/bff/auth/login</code></li>
-<li><strong>Data used</strong>:</li>
-<li><code>customerId</code> → saved and passed to dashboard and analytics screens.</li>
-<li><code>fullName</code> → shown as “Welcome back, <name>”.</li>
-</ul>
-<h3 id="72-dashboard-portfolio">7.2 Dashboard Portfolio</h3>
-<ul>
-<li><strong>Screen</strong>: <code>DashboardScreen</code></li>
-<li><strong>Method</strong>: <code>ApiClient.getPortfolio(customerId)</code></li>
-<li><strong>Backend API</strong>: <code>GET /api/bff/portfolio/{customerId}</code></li>
-</ul>
-<p>Mapping:</p>
-<ul>
-<li><code>PortfolioResponse.policies[]</code> → <code>Policy</code> model</li>
-<li><code>policyType</code> → category chips (<code>Life</code>, <code>Health</code>, <code>Motor</code>, <code>Others</code>)</li>
-<li><code>premiumAmount</code> → “Annual Premium”</li>
-<li><code>sumAssured</code> → “Sum Insured”</li>
-<li><code>startDate</code> / <code>endDate</code> → used on the policy details page</li>
-<li><code>PortfolioResponse.totalPremium</code> / <code>totalCoverage</code> / <code>totalPolicies</code></li>
-<li>Shown in the three summary cards at the top.</li>
-</ul>
-<h3 id="73-analytics-dashboard">7.3 Analytics Dashboard</h3>
-<ul>
-<li><strong>Screen</strong>: <code>AnalyticsDashboard</code></li>
-<li><strong>Method</strong>: <code>ApiClient.getPortfolio(customerId)</code></li>
-<li><strong>Backend API</strong>: <code>GET /api/bff/portfolio/{customerId}</code></li>
-</ul>
-<p>Usage:</p>
-<ul>
-<li>Computes percentages for:</li>
-<li>Life Insurance (policies where <code>policyType</code> contains <code>"life"</code>)</li>
-<li>Health Insurance (contains <code>"health"</code>)</li>
-<li>Motor Insurance (contains <code>"auto"</code> or <code>"motor"</code>)</li>
-<li>Shows:</li>
-<li>Policies Linked = number of policies.</li>
-<li>Total Protection = sum of <code>sumAssured</code> for all policies.</li>
-</ul>
-<h3 id="74-policy-detail-page">7.4 Policy Detail Page</h3>
-<ul>
-<li><strong>Screen</strong>: <code>PolicyDetailScreen</code></li>
-<li>Navigated from <strong><code>PolicyCard</code></strong> in <code>DashboardScreen</code>.</li>
-<li>Uses the already-fetched <code>Policy</code> instance (no extra HTTP call).</li>
-</ul>
-<p>Fields:</p>
-<ul>
-<li>Header:</li>
-<li><code>policy.name</code>, <code>policy.policyId</code></li>
-<li>Due Date badge: <code>policy.endDate</code> (formatted as <code>dd/MM/yy</code>)</li>
-<li>“Policy Overview”:</li>
-<li>Status (Active / Due / Expired)</li>
-<li>Coverage (Life / Health / Motor / Others)</li>
-<li>Start Date / Expiration Date from <code>policy.startDate</code> / <code>policy.endDate</code></li>
-<li>Premium from <code>policy.annualPremium</code></li>
-<li>“Coverage Details”:</li>
-<li>Sum Assured from <code>policy.sumInsured</code></li>
+<li><code>GET /</code> (Eureka dashboard)</li>
+<li><code>GET /actuator/health</code></li>
 </ul>
 <hr />
-</body></html>
+<h2 id="7-frontend-flutter-web-api-usage">7. Frontend (Flutter Web) – API usage</h2>
+<p>The Flutter app calls <strong>only the BFF</strong>:</p>
+<ul>
+<li><code>POST /api/bff/auth/login</code></li>
+<li><code>GET /api/bff/portfolio/{customerId}</code></li>
+</ul>
+<hr />
+<h2 id="generating-html-pdf">Generating HTML + PDF</h2>
+<p>Run:</p>
+<pre><code class="language-bash">python generate_api_contracts_html_and_pdf.py
+</code></pre>
+  <footer>Generated API Reference · MyPolicy</footer>
+</body>
+</html>

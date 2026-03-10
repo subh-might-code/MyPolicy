@@ -1,20 +1,61 @@
-# MyPolicy – API Contracts (Backend & Frontend Usage)
+# MyPolicy – API Contracts
 
-> This document describes the main HTTP APIs used in the MyPolicy project – both
-> the public APIs exposed to the frontend and the internal service‑to‑service
-> contracts.  
-> All paths are relative to the service base URL (or host/port in Docker/Dev).
+This document provides **full API contracts** for the MyPolicy project:
+
+- **External (QA / frontend / automation)**: BFF APIs (recommended entrypoint)
+- **Internal (service-to-service)**: customer-service, policy-service, data-pipeline-service
+- **Platform**: config-service (Spring Cloud Config), discovery-service (Eureka)
+
+All paths below are relative to the service base URL.
 
 ---
 
-## 1. BFF Service (`bff-service`)
+## Environments & Base URLs
 
-The BFF is the primary entrypoint for the frontend.  
-Port: **8090** (dev), behind Docker: `bff-service:8090`.
+### Local (Maven)
+
+| Service | Base URL |
+|---|---|
+| BFF | `http://localhost:8090` |
+| Customer | `http://localhost:8081` |
+| Policy | `http://localhost:8085` |
+| Data-pipeline | `http://localhost:8082` |
+| Eureka | `http://localhost:8761` |
+| Config | `http://localhost:8888` |
+
+### Docker Compose (host)
+
+| Service | Base URL |
+|---|---|
+| Frontend (nginx / Flutter web) | `http://localhost:8080` |
+| BFF | `http://localhost:8090` |
+| Customer | `http://localhost:8081` |
+| Policy | `http://localhost:8085` |
+| Data-pipeline | `http://localhost:8082` |
+| Eureka | `http://localhost:8761` |
+| Config (host-mapped) | `http://localhost:8889` |
+
+---
+
+## Authentication
+
+### JWT (Bearer)
+
+After login, the API returns a `token`. For protected endpoints, send:
+
+```text
+Authorization: Bearer <token>
+```
+
+---
+
+## 1. BFF Service (`bff-service`) — Recommended for QA automation
+
+The BFF is the single entrypoint for the frontend and for QA automation. It orchestrates calls to downstream services.
 
 ### 1.1 `POST /api/bff/auth/login`
 
-**Purpose**: Authenticate a customer using `full name + PAN` and return a token and customer summary.
+**Purpose**: Login using `Full Name + PAN`, returning JWT token and customer summary.
 
 **Request (JSON)**
 
@@ -25,13 +66,11 @@ Port: **8090** (dev), behind Docker: `bff-service:8090`.
 }
 ```
 
-**Response `200 OK`**
+**Response `200 OK` (shape)**
 
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "customerId": "901120934",
-  "fullName": "Amit Ramesh Kulkarni",
   "customer": {
     "customerId": 901120934,
     "fullName": "Amit Ramesh Kulkarni",
@@ -41,39 +80,28 @@ Port: **8090** (dev), behind Docker: `bff-service:8090`.
 }
 ```
 
-**Error `401 / 400`**
+**Errors**
 
-```json
-{
-  "timestamp": "2026-03-09T14:01:23.456+05:30",
-  "status": 401,
-  "error": "Unauthorized",
-  "message": "Invalid credentials",
-  "path": "/api/bff/auth/login"
-}
-```
-
-Used by **Flutter**: `ApiClient.login(...)`.
+- `400 Bad Request`: validation errors from downstream services
+- `401 Unauthorized`: invalid credentials
 
 ---
 
 ### 1.2 `GET /api/bff/portfolio/{customerId}`
 
-**Purpose**: Get unified portfolio for a given customer:
+**Purpose**: Unified portfolio for the given customer:
 
-- Customer details from `customer-service`
-- Unified policies from `data-pipeline-service`
-- Aggregated totals (premium, coverage)
+- customer details via `customer-service`
+- policies via `data-pipeline-service` unified portfolio
+- totals calculated by BFF
 
-`customerId` is the numeric ID from `Customer_data.csv` / `customer_details`.
-
-**Example URL**
+**Headers**
 
 ```text
-GET /api/bff/portfolio/901120934
+Authorization: Bearer <token>
 ```
 
-**Response `200 OK`**
+**Response `200 OK` (shape)**
 
 ```json
 {
@@ -87,28 +115,13 @@ GET /api/bff/portfolio/901120934
   "policies": [
     {
       "id": "AUPOL-S001",
-      "customerId": "901120934",
-      "insurerId": "HDFC Life",
       "policyNumber": "AUPOL-S001",
       "policyType": "auto_insurance",
-      "planName": null,
+      "insurerId": "HDFC Life",
       "premiumAmount": 18500.0,
       "sumAssured": 500000.0,
       "startDate": "2024-01-01",
       "endDate": "2025-12-31",
-      "status": "ACTIVE"
-    },
-    {
-      "id": "LIPOL-S001",
-      "customerId": "901120934",
-      "insurerId": "SBI Life",
-      "policyNumber": "LIPOL-S001",
-      "policyType": "life_insurance",
-      "planName": null,
-      "premiumAmount": 12500.0,
-      "sumAssured": 1000000.0,
-      "startDate": "2023-01-01",
-      "endDate": "2042-12-31",
       "status": "ACTIVE"
     }
   ],
@@ -118,379 +131,170 @@ GET /api/bff/portfolio/901120934
 }
 ```
 
-Used by **Flutter**:
-
-- `DashboardScreen` (list of policies + top summary cards).
-- `AnalyticsDashboard` (donut charts and KPIs).
-- `PolicyDetailScreen` (detail view for a selected policy).
-
 ---
 
-### 1.3 `GET /api/bff/advisory/{customerId}` (used internally / future UI)
+### 1.3 `GET /api/bff/advisory/{customerId}`
 
-**Purpose**: Fetch coverage advisory & gap analysis from `data-pipeline-service`.
+**Purpose**: Coverage advisory/gap analysis proxied from `data-pipeline-service`.
 
-**Example URL**
+**Headers**
 
 ```text
-GET /api/bff/advisory/901120934
+Authorization: Bearer <token>
 ```
-
-**Response `200 OK` (shape simplified)**
-
-```json
-{
-  "customerId": 901120934,
-  "overallScore": {
-    "score": 72,
-    "rating": "GOOD"
-  },
-  "gaps": [
-    {
-      "policyType": "TERM_LIFE",
-      "gapAmount": 5000000.0,
-      "severity": "HIGH",
-      "advisory": "Your current life cover is below recommended levels."
-    }
-  ],
-  "recommendations": [
-    {
-      "title": "Increase Life Coverage",
-      "priority": "CRITICAL",
-      "suggestedCoverage": 10000000.0,
-      "estimatedPremium": 55000.0
-    }
-  ]
-}
-```
-
-This is currently consumed by the BFF service and is ready for future frontend “Insights” pages.
 
 ---
 
-### 1.4 `GET /api/bff/health`
+### 1.4 `GET /api/bff/insights/{customerId}`
 
-**Purpose**: Simple health endpoint for BFF.
+**Purpose**: Coverage insights & recommendations computed in BFF.
 
-**Response**
+**Headers**
 
-```json
-{ "status": "UP" }
+```text
+Authorization: Bearer <token>
 ```
 
-Used by `verify-services.ps1`.
+---
+
+### 1.5 Upload APIs (BFF → ingestion)
+
+#### 1.5.1 `POST /api/bff/upload`
+
+**Purpose**: Upload an insurer file for ingestion.
+
+**Consumes**: `multipart/form-data`
+
+**Form fields**
+
+- `file`: binary
+- `uploadedBy`: string
+- `insurerId`: string
+
+#### 1.5.2 `GET /api/bff/upload/status/{jobId}`
+
+**Purpose**: Get ingestion job status.
+
+---
+
+### 1.6 Health / sanity endpoints
+
+- `GET /api/bff/health` → JSON status object
+- `GET /api/bff/ping` → `"pong"`
+- `GET /actuator/health` → Spring actuator health
 
 ---
 
 ## 2. Data Pipeline Service (`data-pipeline-service`)
 
-Port: **8082**.
+Port: **8082**
 
-### 2.1 `GET /api/portfolio/{customerId}`
+### 2.1 Portfolio APIs
 
-**Purpose**: Return unified portfolio records from `unified_portfolio` for a given customer.
+- `GET /api/portfolio/{customerId}`
+- `GET /api/advisory/{customerId}`
 
-**Example**
+### 2.2 Pipeline execution APIs
 
-```text
-GET /api/portfolio/901120934
-```
+- `POST /api/pipeline/run`
+- `POST /api/pipeline/upload` (multipart `file`, `collectionName`)
 
-**Response `200 OK`**
+### 2.3 Insurer portal (HTML)
 
-```json
-{
-  "customerId": 901120934,
-  "policies": [
-    {
-      "policyId": "AUPOL-S001",
-      "insurer": "HDFC Life",
-      "sourceCollection": "auto_insurance",
-      "premium": 18500.0,
-      "sumAssured": 500000,
-      "startDate": 20240101,
-      "policyEnd": 20251231,
-      "matchMethod": "PAN_MATCH"
-    },
-    {
-      "policyId": "LIPOL-S001",
-      "insurer": "SBI Life",
-      "sourceCollection": "life_insurance",
-      "premium": 12500.0,
-      "sumAssured": 1000000,
-      "startDate": 20230101,
-      "policyEnd": 20421231,
-      "matchMethod": "PAN_MATCH"
-    }
-  ],
-  "totalPolicies": 4
-}
-```
+- `GET /insurer-portal`
 
-Used by **BFF** via `DataPipelineClient.getPortfolio(...)`.
+### 2.4 Health
 
----
-
-### 2.2 `GET /api/advisory/{customerId}`
-
-**Purpose**: Compute coverage advisory and gaps for a given customer’s unified portfolio.
-
-**Example**
-
-```text
-GET /api/advisory/901120934
-```
-
-**Response `200 OK` (shape simplified)**
-
-```json
-{
-  "customerId": 901120934,
-  "lifeCoverage": {
-    "current": 5000000.0,
-    "recommended": 10000000.0,
-    "gap": 5000000.0,
-    "severity": "HIGH"
-  },
-  "healthCoverage": {
-    "current": 400000.0,
-    "recommended": 3000000.0,
-    "gap": 2600000.0,
-    "severity": "HIGH"
-  },
-  "autoCoverage": {
-    "current": 450000.0,
-    "recommended": 1000000.0,
-    "gap": 550000.0,
-    "severity": "MEDIUM"
-  },
-  "overallScore": {
-    "score": 72,
-    "rating": "GOOD"
-  },
-  "notes": [
-    "Increase term life cover to at least 10x annual income.",
-    "Consider higher health coverage for the family."
-  ]
-}
-```
-
-Used by **BFF** via `DataPipelineClient.getAdvisory(...)`.
+- `GET /actuator/health`
 
 ---
 
 ## 3. Customer Service (`customer-service`)
 
-Port: **8081**.
+Port: **8081**
 
-### 3.1 `GET /api/v1/customers/details/{customerId}`
+### 3.1 Customer APIs
 
-**Purpose**: Fetch customer details by numeric `customerId`.
+- `POST /api/v1/customers/register`
+- `POST /api/v1/customers/login`
+- `GET /api/v1/customers/{customerId}`
+- `GET /api/v1/customers/details/{customerId}`
+- `PUT /api/v1/customers/{customerId}`
+- `GET /api/v1/customers/search/mobile/{mobile}`
+- `GET /api/v1/customers/search/email/{email}`
+- `GET /api/v1/customers/search/pan/{pan}`
 
-**Example**
-
-```text
-GET /api/v1/customers/details/901120934
-```
-
-**Response `200 OK`**
-
-```json
-{
-  "customerId": 901120934,
-  "fullName": "Amit Ramesh Kulkarni",
-  "mobile": "919876543210",
-  "email": "amit.kulkarni@gmail.com",
-  "pan": "AKCPK1123L",
-  "status": "ACTIVE"
-}
-```
-
-Used by **BFF** via `CustomerClient.getCustomerDetails(...)`.
-
----
-
-### 3.2 `POST /api/v1/customers/login` (internal)
-
-> The BFF currently performs login logic itself using `full name + PAN`.  
-> Customer-service also supports email+password style login for future extensions.
-
-**Request**
+### 3.2 Login request (JSON)
 
 ```json
 {
-  "customerIdOrEmail": "amit.kulkarni@gmail.com",
-  "password": "SomePassword123"
+  "customerIdOrUserId": "Amit Ramesh Kulkarni",
+  "password": "AKCPK1123L"
 }
 ```
 
-**Response `200 OK`**
+### 3.3 Health / ping
 
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "customer": {
-    "customerId": 901120934,
-    "fullName": "Amit Ramesh Kulkarni",
-    "email": "amit.kulkarni@gmail.com"
-  }
-}
-```
-
----
-
-### 3.3 `GET /api/v1/health`
-
-Simple health endpoint used by `verify-services.ps1`.
-
-**Response**
-
-```json
-{ "status": "UP", "service": "customer-service" }
-```
+- `GET /api/v1/health`
+- `GET /api/v1/ping`
+- `GET /` or `GET /health` or `GET /api/health`
+- `GET /actuator/health` (may be secured)
 
 ---
 
 ## 4. Policy Service (`policy-service`)
 
-Port: **8085**.
+Port: **8085**
 
-### 4.1 `GET /api/v1/policies/{policyId}` (shape)
+### 4.1 Policy APIs
 
-Used for CRUD on raw policy storage.
+- `POST /api/v1/policies`
+- `GET /api/v1/policies`
+- `GET /api/v1/policies/{id}`
+- `GET /api/v1/policies/customer/{customerId}`
+- `PATCH /api/v1/policies/{id}/status?status=...`
+- `DELETE /api/v1/policies/{id}`
 
-**Example**
+### 4.2 Health / ping
 
-```text
-GET /api/v1/policies/AUPOL-S001
-```
-
-**Response `200 OK` (simplified)**
-
-```json
-{
-  "policyId": "AUPOL-S001",
-  "customerId": 901120934,
-  "insurerId": "HDFC Life",
-  "policyNumber": "AUPOL-S001",
-  "policyType": "auto_insurance",
-  "premiumAmount": 18500.0,
-  "sumAssured": 500000.0,
-  "status": "ACTIVE"
-}
-```
-
-### 4.2 `GET /api/v1/health`
-
-Health endpoint used by scripts.
+- `GET /api/v1/health`
+- `GET /api/v1/ping`
 
 ---
 
 ## 5. Config Service (`config-service`)
 
-Port: **8888** (host‑mapped to 8889 in Docker).
+Container port **8888** (host-mapped to **8889** in Docker)
 
-### 5.1 `GET /{app-name}/{profile}` – Spring Cloud Config
-
-**Example**
-
-```text
-GET /customer-service/default
-```
-
-**Response** – standard Spring Cloud Config JSON containing property sources.
-
-### 5.2 `GET /actuator/health`
-
-Used by Docker health checks and `verify-services.ps1`.
+- `GET /{app-name}/{profile}` (Spring Cloud Config)
+  - Example: `GET /customer-service/default`
+- `GET /actuator/health`
 
 ---
 
 ## 6. Discovery Service (`discovery-service`)
 
-Port: **8761**.
+Port: **8761**
 
-### 6.1 `GET /`
-
-Eureka dashboard (HTML UI to see registered instances).
-
-### 6.2 `GET /actuator/health`
-
-Health endpoint used by tooling.
+- `GET /` (Eureka dashboard)
+- `GET /actuator/health`
 
 ---
 
-## 7. Frontend (Flutter Web) – API Usage Summary
+## 7. Frontend (Flutter Web) – API usage
 
-The Flutter app (web build) **only calls the BFF**, never the individual microservices directly.
+The Flutter app calls **only the BFF**:
 
-### 7.1 Login Flow
-
-- **Screen**: `LoginScreen`
-- **Method**: `ApiClient.login(userId, password)`
-- **Backend API**: `POST /api/bff/auth/login`
-- **Data used**:
-  - `customerId` → saved and passed to dashboard and analytics screens.
-  - `fullName` → shown as “Welcome back, <name>”.
-
-### 7.2 Dashboard Portfolio
-
-- **Screen**: `DashboardScreen`
-- **Method**: `ApiClient.getPortfolio(customerId)`
-- **Backend API**: `GET /api/bff/portfolio/{customerId}`
-
-Mapping:
-
-- `PortfolioResponse.policies[]` → `Policy` model
-  - `policyType` → category chips (`Life`, `Health`, `Motor`, `Others`)
-  - `premiumAmount` → “Annual Premium”
-  - `sumAssured` → “Sum Insured”
-  - `startDate` / `endDate` → used on the policy details page
-- `PortfolioResponse.totalPremium` / `totalCoverage` / `totalPolicies`
-  - Shown in the three summary cards at the top.
-
-### 7.3 Analytics Dashboard
-
-- **Screen**: `AnalyticsDashboard`
-- **Method**: `ApiClient.getPortfolio(customerId)`
-- **Backend API**: `GET /api/bff/portfolio/{customerId}`
-
-Usage:
-
-- Computes percentages for:
-  - Life Insurance (policies where `policyType` contains `"life"`)
-  - Health Insurance (contains `"health"`)
-  - Motor Insurance (contains `"auto"` or `"motor"`)
-- Shows:
-  - Policies Linked = number of policies.
-  - Total Protection = sum of `sumAssured` for all policies.
-
-### 7.4 Policy Detail Page
-
-- **Screen**: `PolicyDetailScreen`
-- Navigated from **`PolicyCard`** in `DashboardScreen`.
-- Uses the already-fetched `Policy` instance (no extra HTTP call).
-
-Fields:
-
-- Header:
-  - `policy.name`, `policy.policyId`
-  - Due Date badge: `policy.endDate` (formatted as `dd/MM/yy`)
-- “Policy Overview”:
-  - Status (Active / Due / Expired)
-  - Coverage (Life / Health / Motor / Others)
-  - Start Date / Expiration Date from `policy.startDate` / `policy.endDate`
-  - Premium from `policy.annualPremium`
-- “Coverage Details”:
-  - Sum Assured from `policy.sumInsured`
+- `POST /api/bff/auth/login`
+- `GET /api/bff/portfolio/{customerId}`
 
 ---
 
-## Notes on PDF Export
+## Generating HTML + PDF
 
-This document is stored as `API_CONTRACTS.md` in `MyPolicy-Backend`.  
-To generate a PDF version you can:
+Run:
 
-1. Open the file in VS Code / any Markdown viewer and **Print to PDF**, or
-2. Use a Markdown‑to‑PDF tool (e.g. `pandoc`, or an online converter) on `API_CONTRACTS.md`.
+```bash
+python generate_api_contracts_html_and_pdf.py
+```
 
