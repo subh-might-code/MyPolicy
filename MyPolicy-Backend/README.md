@@ -128,20 +128,24 @@ Run the whole stack with Docker Compose:
 docker compose up --build -d
 ```
 
+- **QA automation note (recommended)**: this compose file includes a **local MongoDB** container so API tests are repeatable. Data will persist in the `mongo_data` Docker volume.
 - **Config** is mapped to host port **8889** (to avoid conflict with a local config-service on 8888).  
   From the host: [http://localhost:8889](http://localhost:8889).  
   Inside the network, services still use `config-service:8888`.
+- **Flutter web frontend (Nginx):** [http://localhost:8080](http://localhost:8080)
 - **BFF (UI):** [http://localhost:8090](http://localhost:8090)
 - **Eureka:** [http://localhost:8761](http://localhost:8761)
 
 | Service | Host Port | Container Port |
 |---------|-----------|----------------|
+| MongoDB | 27017 | 27017 |
 | Config | 8889 | 8888 |
 | Discovery | 8761 | 8761 |
 | Customer | 8081 | 8081 |
 | Policy | 8085 | 8085 |
 | Data-pipeline | 8082 | 8082 |
 | BFF | 8090 | 8090 |
+| Frontend | 8080 | 80 |
 
 Useful commands:
 
@@ -151,7 +155,7 @@ docker compose down
 docker compose ps
 ```
 
-Override MongoDB (e.g. for another environment) via env in `docker-compose.yml`: `SPRING_DATA_MONGODB_URI`, `MONGODB_URI`.
+Override MongoDB (e.g. use Atlas instead of local) via env in `docker-compose.yml`: `SPRING_DATA_MONGODB_URI`, `MONGODB_URI`.
 
 ---
 

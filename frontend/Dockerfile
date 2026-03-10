@@ -15,8 +15,10 @@ RUN flutter config --enable-web
 # Get dependencies
 RUN flutter pub get
 
-# Build web in release mode, pointing API base URL to BFF service inside Docker network
-RUN flutter build web --release --dart-define=API_BASE_URL=http://bff-service:8090
+# Build web in release mode.
+# NOTE: This is a Flutter Web app served to the user's browser, so the API base
+# must be reachable from the host network (not the Docker network DNS).
+RUN flutter build web --release --dart-define=API_BASE_URL=http://localhost:8090
 
 
 # ----------------------------

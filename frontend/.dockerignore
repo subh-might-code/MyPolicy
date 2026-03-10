@@ -1,0 +1,16 @@
+.dart_tool/
+build/
+.packages
+.pub-cache/
+.pub/
+
+.idea/
+.vscode/
+*.iml
+*.log
+
+# Optional local assets
+flutter_*.png
+
+# Coverage
+coverage/

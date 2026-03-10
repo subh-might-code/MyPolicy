@@ -1,4 +1,20 @@
 services:
+  mongodb:
+    image: mongo:7
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mypolicy-net
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   config-service:
     build:
       context: ./config-service
@@ -46,9 +62,12 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
       EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/Backend_databases
     networks:
       - mypolicy-net
     healthcheck:
@@ -70,9 +89,12 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
       EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/Backend_databases
     networks:
       - mypolicy-net
     healthcheck:
@@ -94,9 +116,13 @@ services:
         condition: service_healthy
       discovery-service:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     environment:
       SPRING_CONFIG_IMPORT: optional:configserver:http://admin:config123@config-service:8888
       EUREKA_DEFAULT_ZONE: http://discovery-service:8761/eureka
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/Backend_databases
+      MONGODB_URI: mongodb://mongodb:27017/Backend_databases
     networks:
       - mypolicy-net
     healthcheck:
@@ -139,7 +165,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
     container_name: frontend
     ports:
@@ -153,3 +179,5 @@ services:
 networks:
   mypolicy-net:
     driver: bridge
+volumes:
+  mongo_data:
